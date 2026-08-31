@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#c0e3f9" />
+    <meta name="description" content="豆包工作指南：从一个真实问题进入，完成任务，再把方法留下来。" />
+    <title>豆包工作指南</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css?v=20260831-12" />
+    <script src="/app.js?v=20260831-12" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳到正文</a>
+    <div class="reading-progress" aria-hidden="true"><span></span></div>
+
+    <header class="topbar">
+      <a class="brand" href="#/" aria-label="豆包工作指南首页">
+        <span class="brand-type"><b>豆包工作指南</b><small>DOUBAO WORK FIELD MANUAL</small></span>
+      </a>
+      <div class="header-actions">
+        <button class="icon-button search-trigger" type="button" aria-label="搜索指南" title="搜索指南（⌘K）">
+          <span>搜索指南</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+        </button>
+        <span class="header-rule" aria-hidden="true"></span>
+        <button class="icon-button menu-toggle" type="button" aria-label="打开章节目录" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="main-content" tabindex="-1">
+      <section class="loading-state" aria-live="polite">
+        <span class="loading-orbit" aria-hidden="true"></span>
+        <p>正在装订指南…</p>
+      </section>
+    </main>
+
+    <div class="sidebar-scrim" hidden></div>
+
+    <dialog class="search-dialog" aria-labelledby="search-title">
+      <div class="search-shell">
+        <div class="search-head">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+          <label class="sr-only" for="search-input" id="search-title">搜索全部章节</label>
+          <input id="search-input" type="search" placeholder="搜索任务、工具或场景…" autocomplete="off" />
+          <button class="search-close" type="button" aria-label="关闭搜索">ESC</button>
+        </div>
+        <div class="search-hint"><span>全文搜索</span><span>↑↓ 选择 · Enter 打开</span></div>
+        <div class="search-results" role="listbox" aria-label="搜索结果"></div>
+      </div>
+    </dialog>
+
+    <dialog class="image-dialog" aria-label="查看大图">
+      <button class="image-close" type="button" aria-label="关闭大图">×</button>
+      <figure><img alt="" /><figcaption></figcaption></figure>
+    </dialog>
+
+    <noscript>这个网站需要启用 JavaScript 才能加载指南内容。</noscript>
+  </body>
+</html>

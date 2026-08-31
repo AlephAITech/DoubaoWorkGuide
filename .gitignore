@@ -1,0 +1,23 @@
+.DS_Store
+
+# Internal content-maintenance workspace
+/content/
+/scripts/
+/.work/
+/drafts/
+/demos/
+/outputs/
+/public/
+/doc-fetch-resources/
+
+# Local authorization screenshots
+/*auth*.png
+/*permission*.png
+/lark-*.png
+
+# README only needs the current cover and author cards
+/assets/screenshots/
+
+# Keep only media referenced by the current public snapshot. Referenced files
+# are force-added to Git; stale downloads and original video masters stay local.
+/site/media/*
