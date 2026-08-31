@@ -4,28 +4,39 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#c0e3f9" />
-    <meta name="description" content="豆包工作指南：从一个真实问题进入，完成任务，再把方法留下来。" />
-    <title>豆包工作指南</title>
+    <meta name="description" content="豆包工作蓝皮书：从一个真实问题进入，完成任务，再把方法留下来。" />
+    <title>豆包工作蓝皮书</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/styles.css?v=20260831-12" />
-    <script src="/app.js?v=20260831-12" defer></script>
+    <link rel="stylesheet" href="/styles.css?v=20260901-13" />
+    <script src="/app.js?v=20260901-13" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">跳到正文</a>
     <div class="reading-progress" aria-hidden="true"><span></span></div>
 
     <header class="topbar">
-      <a class="brand" href="#/" aria-label="豆包工作指南首页">
-        <span class="brand-type"><b>豆包工作指南</b><small>DOUBAO WORK FIELD MANUAL</small></span>
+      <a class="brand" href="#/" aria-label="DoubaoWork Guide 首页">
+        <span class="brand-type"><b>DoubaoWork Guide</b><small>DOUBAO WORK FIELD MANUAL</small></span>
       </a>
+      <nav class="primary-nav" id="primary-navigation" aria-label="主导航">
+        <a href="#/" data-nav="home">首页</a>
+        <a href="#/" data-nav="start">开始阅读</a>
+        <a href="#scenarios" data-nav="cases">案例集</a>
+        <a href="#tasks" data-nav="solve">帮你解决</a>
+        <a href="#paths" data-nav="guide">阅读指南</a>
+        <a class="github-nav" href="https://github.com/AlephAITech/DoubaoWorkGuide" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
       <div class="header-actions">
         <button class="icon-button search-trigger" type="button" aria-label="搜索指南" title="搜索指南（⌘K）">
           <span>搜索指南</span>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
         </button>
         <span class="header-rule" aria-hidden="true"></span>
-        <button class="icon-button menu-toggle" type="button" aria-label="打开章节目录" aria-expanded="false">
+        <button class="icon-button nav-toggle" type="button" aria-label="打开主导航" aria-controls="primary-navigation" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <button class="icon-button menu-toggle" type="button" aria-label="打开章节目录" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>
         </button>
       </div>
     </header>

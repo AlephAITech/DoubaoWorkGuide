@@ -4,6 +4,8 @@ const searchInput = document.querySelector("#search-input");
 const searchResults = document.querySelector(".search-results");
 const imageDialog = document.querySelector(".image-dialog");
 const menuToggle = document.querySelector(".menu-toggle");
+const navToggle = document.querySelector(".nav-toggle");
+const primaryNav = document.querySelector(".primary-nav");
 const sidebarScrim = document.querySelector(".sidebar-scrim");
 const progressBar = document.querySelector(".reading-progress span");
 
@@ -105,8 +107,9 @@ function renderHome() {
   document.body.classList.remove("reader-mode");
   document.body.classList.add("home-mode");
   closeMobileSidebar();
+  closePrimaryNav();
   progressBar.style.width = "0";
-  document.title = "豆包工作指南";
+  document.title = "豆包工作蓝皮书 · DoubaoWork Guide";
 
   const root = rootDocument();
   const sections = state.children.get(root.nodeToken) || [];
@@ -216,7 +219,7 @@ function renderHome() {
             <div class="cover-rule" aria-hidden="true"></div>
             <div class="cover-copy">
               <p class="eyebrow">DOUBAO WORK · FIELD MANUAL</p>
-              <h1 id="hero-title">豆包工作<span>指南</span></h1>
+              <h1 id="hero-title">豆包工作<span>蓝皮书</span></h1>
               <p class="hero-lede">带着一个真实问题进来<br />完成任务，再把方法留下来</p>
               <div class="cover-meta">
                 <span>FIELD MANUAL</span>
@@ -286,7 +289,7 @@ function renderHome() {
         <div class="path-grid">${pathCards}</div>
       </section>
 
-      <section class="task-band" aria-labelledby="task-title">
+      <section class="task-band" id="tasks" aria-labelledby="task-title">
         <p class="section-kicker">TASK DRAWER / 01—06</p>
         <div class="section-heading">
           <h2 id="task-title">你今天想把哪件事交出去？</h2>
@@ -526,8 +529,9 @@ function renderMarkdown(markdown, pageTitle) {
 function renderReader(doc) {
   document.body.classList.add("reader-mode");
   document.body.classList.remove("home-mode");
-  document.title = `${doc.title} · 豆包工作指南`;
+  document.title = `${doc.title} · DoubaoWork Guide`;
   closeMobileSidebar();
+  closePrimaryNav();
 
   const trail = ancestors(doc).filter((item) => item.depth > 0);
   const rendered = renderMarkdown(doc.content, doc.title);
@@ -622,6 +626,7 @@ function route() {
     const doc = state.byToken.get(docMatch[1]);
     if (doc) renderReader(doc);
     else renderNotFound();
+    updatePrimaryNavigation();
     window.scrollTo({ top: 0, behavior: "instant" });
     return;
   }
@@ -636,12 +641,14 @@ function route() {
 
   if (!main.querySelector(".home")) renderHome();
   const targetId = hash.startsWith("#") && !hash.startsWith("#/") ? hash.slice(1) : "";
+  updatePrimaryNavigation();
   if (targetId) requestAnimationFrame(() => document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth" }));
   else window.scrollTo({ top: 0, behavior: "instant" });
 }
 
 function renderNotFound() {
   document.body.classList.remove("reader-mode");
+  closePrimaryNav();
   main.innerHTML = `<section class="error-state"><h1>这一页暂时找不到</h1><p>内容目录可能刚刚调整过层级。</p><a href="#/">返回指南首页</a></section>`;
 }
 
@@ -709,6 +716,40 @@ function setupTheme() {
   document.documentElement.dataset.theme = "light";
 }
 
+function configurePrimaryNavigation() {
+  const root = rootDocument();
+  const sections = state.children.get(root.nodeToken) || [];
+  const start = firstReadable(sections[0]?.nodeToken || root.nodeToken);
+  const startLink = primaryNav.querySelector('[data-nav="start"]');
+  if (start?.nodeToken) startLink.href = `#/doc/${start.nodeToken}`;
+}
+
+function updatePrimaryNavigation() {
+  const hash = window.location.hash || "#/";
+  let active = "home";
+  if (hash.startsWith("#/doc/")) active = "start";
+  else if (hash === "#scenarios") active = "cases";
+  else if (hash === "#tasks") active = "solve";
+  else if (hash === "#paths") active = "guide";
+
+  primaryNav.querySelectorAll("[data-nav]").forEach((link) => {
+    if (link.dataset.nav === active) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+}
+
+function openPrimaryNav() {
+  document.body.classList.add("nav-open");
+  navToggle.setAttribute("aria-expanded", "true");
+  navToggle.setAttribute("aria-label", "关闭主导航");
+}
+
+function closePrimaryNav() {
+  document.body.classList.remove("nav-open");
+  navToggle.setAttribute("aria-expanded", "false");
+  navToggle.setAttribute("aria-label", "打开主导航");
+}
+
 function openMobileSidebar() {
   const sidebar = document.querySelector(".doc-sidebar");
   if (!sidebar) return;
@@ -753,6 +794,7 @@ async function init() {
       depth: doc.depth,
       index,
     }));
+    configurePrimaryNavigation();
     route();
   } catch (error) {
     console.error(error);
@@ -764,6 +806,8 @@ document.querySelectorAll(".search-trigger").forEach((button) => button.addEvent
 document.querySelector(".search-close").addEventListener("click", () => searchDialog.close());
 document.querySelector(".theme-toggle")?.addEventListener("click", toggleTheme);
 document.querySelector(".image-close").addEventListener("click", () => imageDialog.close());
+navToggle.addEventListener("click", () => document.body.classList.contains("nav-open") ? closePrimaryNav() : openPrimaryNav());
+primaryNav.querySelectorAll("a").forEach((link) => link.addEventListener("click", closePrimaryNav));
 menuToggle.addEventListener("click", () => document.querySelector(".doc-sidebar")?.classList.contains("open") ? closeMobileSidebar() : openMobileSidebar());
 sidebarScrim.addEventListener("click", closeMobileSidebar);
 searchDialog.addEventListener("click", (event) => { if (event.target === searchDialog) searchDialog.close(); });
@@ -787,6 +831,9 @@ window.addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
     event.preventDefault();
     openSearch();
+  } else if (event.key === "Escape" && document.body.classList.contains("nav-open")) {
+    closePrimaryNav();
+    navToggle.focus();
   }
 });
 window.addEventListener("hashchange", route);

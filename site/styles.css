@@ -1637,3 +1637,178 @@ body {
 
   .article-video video { max-height: 64vh; }
 }
+
+/* Global guide navigation — a compact editorial index above the field manual. */
+.topbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto minmax(190px, 1fr);
+  column-gap: clamp(16px, 2.2vw, 38px);
+}
+
+.brand { justify-self: start; }
+.brand-type b {
+  font-family: "Arial Black", "Avenir Next", "PingFang SC", sans-serif;
+  font-size: 18px;
+  letter-spacing: -.055em;
+  text-transform: none;
+}
+
+.primary-nav {
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2px;
+}
+
+.primary-nav a {
+  position: relative;
+  min-height: 44px;
+  padding: 0 clamp(8px, .8vw, 14px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 160ms var(--ease), background 160ms var(--ease), transform 160ms var(--ease);
+}
+
+.primary-nav a::after {
+  content: "";
+  position: absolute;
+  right: 11px;
+  bottom: 0;
+  left: 11px;
+  height: 3px;
+  background: transparent;
+}
+
+.primary-nav a:hover {
+  background: #eaf3f9;
+  color: var(--blue-deep);
+}
+
+.primary-nav a:active { transform: translateY(2px); }
+.primary-nav a[aria-current="page"] { color: var(--blue-deep); }
+.primary-nav a[aria-current="page"]::after { background: var(--ink); }
+
+.primary-nav .github-nav {
+  margin-left: 7px;
+  border-left: 2px solid var(--ink);
+  color: var(--blue-deep);
+}
+
+.primary-nav .github-nav span { margin-left: 4px; font-size: 12px; }
+.header-actions { justify-self: end; }
+.nav-toggle { display: none; }
+.reader-mode .menu-toggle { display: none; }
+
+@media (min-width: 1231px) {
+  .cover-copy h1 { font-size: clamp(70px, 5.45vw, 112px); }
+}
+
+@media (max-width: 1280px) {
+  .topbar { grid-template-columns: minmax(200px, 1fr) auto minmax(58px, 1fr); }
+  .primary-nav a { padding-inline: 9px; font-size: 13px; }
+  .search-trigger span { display: none; }
+  .search-trigger { gap: 0; }
+}
+
+@media (max-width: 1100px) {
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .primary-nav {
+    position: fixed;
+    z-index: 99;
+    top: var(--header-h);
+    right: 0;
+    left: 0;
+    height: auto;
+    max-height: calc(100dvh - var(--header-h));
+    padding: 14px clamp(16px, 4vw, 38px) 20px;
+    border-bottom: 4px solid var(--ink);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    overflow-y: auto;
+    background: #fff;
+    box-shadow: 0 8px 0 rgba(3, 27, 53, .2);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-12px);
+    transition: opacity 180ms var(--ease), transform 180ms var(--ease), visibility 180ms;
+  }
+
+  .nav-open .primary-nav {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .primary-nav a {
+    min-height: 52px;
+    padding: 0 14px;
+    border: 2px solid var(--ink);
+    justify-content: flex-start;
+    background: #fff;
+    font-size: 15px;
+  }
+
+  .primary-nav a::after { display: none; }
+  .primary-nav a:hover,
+  .primary-nav a[aria-current="page"] {
+    background: var(--blue-deep);
+    color: #fff;
+    box-shadow: 4px 4px 0 var(--ink);
+    transform: translate(-2px, -2px);
+  }
+
+  .primary-nav .github-nav {
+    margin-left: 0;
+    border-left: 2px solid var(--ink);
+  }
+
+  .nav-toggle { display: inline-flex; }
+  .header-rule { display: inline-block !important; }
+  .home-mode .header-rule { display: inline-block; }
+}
+
+@media (max-width: 930px) {
+  .reader-mode .menu-toggle { display: inline-flex; }
+}
+
+@media (max-width: 680px) {
+  .brand-type b { font-size: 15px; letter-spacing: -.045em; }
+  .brand-type small { margin-top: 5px; font-size: 7px; letter-spacing: .12em; }
+  .header-rule { display: none !important; }
+  .header-actions { gap: 0; }
+  .icon-button { padding-inline: 6px; }
+
+  .primary-nav {
+    padding: 10px 10px 15px;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .primary-nav a {
+    min-height: 48px;
+    font-size: 14px;
+  }
+
+  .cover-copy h1 { font-size: clamp(39px, 12.1vw, 49px); }
+}
+
+@media (max-width: 380px) {
+  .brand-type b { font-size: 13px; }
+  .brand-type small { display: none; }
+  .icon-button { min-width: 42px; }
+}
