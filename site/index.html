@@ -7,8 +7,18 @@
     <meta name="description" content="豆包工作蓝皮书：从一个真实问题进入，完成任务，再把方法留下来。" />
     <title>豆包工作蓝皮书</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/styles.css?v=20260901-13" />
-    <script src="/app.js?v=20260901-13" defer></script>
+    <script>
+      (() => {
+        try {
+          const saved = localStorage.getItem("doubao-guide-theme");
+          document.documentElement.dataset.theme = saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        } catch {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="/styles.css?v=20260901-14" />
+    <script src="/app.js?v=20260901-14" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">跳到正文</a>
@@ -20,11 +30,27 @@
       </a>
       <nav class="primary-nav" id="primary-navigation" aria-label="主导航">
         <a href="#/" data-nav="home">首页</a>
-        <a href="#/" data-nav="start">开始阅读</a>
-        <a href="#scenarios" data-nav="cases">案例集</a>
-        <a href="#tasks" data-nav="solve">帮你解决</a>
-        <a href="#paths" data-nav="guide">阅读指南</a>
-        <a class="github-nav" href="https://github.com/AlephAITech/DoubaoWorkGuide" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+        <a href="#/bluebook" data-nav="start">开始阅读</a>
+        <a href="#/reading-guide" data-nav="guide">阅读指南</a>
+        <div class="community-nav">
+          <button class="community-trigger" type="button" aria-expanded="false" aria-controls="community-popover">
+            交流群
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5"/></svg>
+          </button>
+          <section class="community-popover" id="community-popover" aria-label="豆包工作交流群" hidden>
+            <button class="community-close" type="button" aria-label="关闭交流群二维码">×</button>
+            <div class="community-qr-placeholder" role="img" aria-label="豆包工作交流群二维码待配置">
+              <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M7 7h18v18H7zM13 13h6v6h-6zM39 7h18v18H39zM45 13h6v6h-6zM7 39h18v18H7zM13 45h6v6h-6zM35 35h8v8h-8zM47 35h10v8H47zM35 47h8v10h-8zM47 49h4v4h-4zM55 47h2v10h-2z"/></svg>
+              <strong>二维码待配置</strong>
+              <span>请提供豆包工作交流群二维码</span>
+            </div>
+            <div class="community-caption"><span>WECHAT GROUP</span><strong>微信扫码加入交流群</strong></div>
+          </section>
+        </div>
+        <a class="mobile-github-nav" href="https://github.com/AlephAITech/DoubaoWorkGuide" target="_blank" rel="noreferrer" aria-label="打开 GitHub 仓库">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.4 4 5 5 0 0 0 19.3.5S18.2.1 15 1.8a13.4 13.4 0 0 0-7 0C4.8.1 3.7.5 3.7.5A5 5 0 0 0 3.6 4a5.4 5.4 0 0 0-1.4 3.5c0 5.4 3.5 6.6 6.8 7A4.8 4.8 0 0 0 8 18v4M8 19c-3 .9-3-1.5-4-2"/></svg>
+          <span>GitHub 仓库</span>
+        </a>
       </nav>
       <div class="header-actions">
         <button class="icon-button search-trigger" type="button" aria-label="搜索指南" title="搜索指南（⌘K）">
@@ -32,6 +58,16 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
         </button>
         <span class="header-rule" aria-hidden="true"></span>
+        <button class="theme-toggle" type="button" aria-label="切换到深色模式" aria-pressed="false" title="切换明暗模式">
+          <span class="theme-track" aria-hidden="true">
+            <svg class="theme-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/></svg>
+            <svg class="theme-moon" viewBox="0 0 24 24"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4 8.5 8.5 0 1 0 20 15.2Z"/></svg>
+          </span>
+        </button>
+        <a class="github-link icon-button" href="https://github.com/AlephAITech/DoubaoWorkGuide" target="_blank" rel="noreferrer" aria-label="打开 GitHub 仓库" title="GitHub">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.4 4 5 5 0 0 0 19.3.5S18.2.1 15 1.8a13.4 13.4 0 0 0-7 0C4.8.1 3.7.5 3.7.5A5 5 0 0 0 3.6 4a5.4 5.4 0 0 0-1.4 3.5c0 5.4 3.5 6.6 6.8 7A4.8 4.8 0 0 0 8 18v4M8 19c-3 .9-3-1.5-4-2"/></svg>
+        </a>
+        <span class="header-rule utility-rule" aria-hidden="true"></span>
         <button class="icon-button nav-toggle" type="button" aria-label="打开主导航" aria-controls="primary-navigation" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>

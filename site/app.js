@@ -6,6 +6,10 @@ const imageDialog = document.querySelector(".image-dialog");
 const menuToggle = document.querySelector(".menu-toggle");
 const navToggle = document.querySelector(".nav-toggle");
 const primaryNav = document.querySelector(".primary-nav");
+const themeToggle = document.querySelector(".theme-toggle");
+const communityTrigger = document.querySelector(".community-trigger");
+const communityPopover = document.querySelector(".community-popover");
+const communityClose = document.querySelector(".community-close");
 const sidebarScrim = document.querySelector(".sidebar-scrim");
 const progressBar = document.querySelector(".reading-progress span");
 
@@ -105,6 +109,7 @@ function rootDocument() {
 
 function renderHome() {
   document.body.classList.remove("reader-mode");
+  document.body.classList.remove("hub-mode");
   document.body.classList.add("home-mode");
   closeMobileSidebar();
   closePrimaryNav();
@@ -125,7 +130,8 @@ function renderHome() {
   const pathCards = sections.map((section, index) => {
     const part = titleParts(section.title);
     const direct = state.children.get(section.nodeToken) || [];
-    const samples = descendants(section.nodeToken).filter((doc) => !doc.hasChild).slice(0, 3);
+    const readableDocs = descendants(section.nodeToken).filter((doc) => !doc.hasChild);
+    const samples = readableDocs.slice(0, 3);
     const target = firstReadable(section.nodeToken);
     return `
       <a class="path-card" href="#/doc/${target.nodeToken}">
@@ -133,7 +139,7 @@ function renderHome() {
         <h3>${escapeHtml(part.label)}</h3>
         <p>${escapeHtml(sectionDescriptions[index] || part.detail)}</p>
         <ul class="path-samples">${samples.map((doc) => `<li>${escapeHtml(doc.title)}</li>`).join("")}</ul>
-        <span class="path-count">${direct.length} 个入口 · ${descendants(section.nodeToken).length} 篇内容 <b>→</b></span>
+        <span class="path-count">${direct.length} 个入口 · ${readableDocs.length} 篇内容 <b>→</b></span>
       </a>`;
   }).join("");
 
@@ -312,6 +318,234 @@ function renderHome() {
         <span>最近更新于 ${formatDate(state.data.fetchedAt, true)} · 共 ${state.docs.length} 个内容节点</span>
       </footer>
     </div>`;
+}
+
+function setHubMode(pageTitle) {
+  document.body.classList.remove("home-mode", "reader-mode");
+  document.body.classList.add("hub-mode");
+  closeMobileSidebar();
+  closePrimaryNav();
+  progressBar.style.width = "0";
+  document.title = `${pageTitle} · DoubaoWork Guide`;
+}
+
+function renderHubShell({ kind, overline, title, lede, meta, actions, content }) {
+  main.innerHTML = `
+    <div class="hub-page hub-${kind}">
+      <section class="hub-hero" aria-labelledby="hub-title">
+        <div>
+          <p class="hub-overline">${escapeHtml(overline)}</p>
+          <h1 id="hub-title">${escapeHtml(title)}</h1>
+          <p class="hub-lede">${escapeHtml(lede)}</p>
+        </div>
+        <p class="hub-meta">${escapeHtml(meta)}</p>
+        <div class="hub-actions">${actions}</div>
+      </section>
+      <div class="hub-content">${content}</div>
+    </div>`;
+
+  main.querySelectorAll(".hub-search-trigger").forEach((button) => button.addEventListener("click", openSearch));
+}
+
+function renderBluebookPage() {
+  setHubMode("豆包工作蓝皮书完整目录");
+  const root = rootDocument();
+  const sections = state.children.get(root.nodeToken) || [];
+  const readableTokens = new Set(readingDocuments().map((doc) => doc.nodeToken));
+  const start = firstReadable(sections[0]?.nodeToken || root.nodeToken);
+  const descriptions = [
+    "从下载安装、界面和第一个任务开始，逐步认识 Skill、连接器、API、自动化与多 Agent。",
+    "从 Word、Excel、文件整理、远程执行和每日简报这些能验收的小事建立手感。",
+    "按个人提效、内容、知识、电商与金融场景进入，把豆包工作放进真实流程。",
+  ];
+  let chapter = 0;
+  const directory = sections.map((section, sectionIndex) => {
+    const docs = descendants(section.nodeToken).filter((doc) => readableTokens.has(doc.nodeToken));
+    return `
+      <section class="directory-part">
+        <header class="directory-head">
+          <span>PART ${String(sectionIndex + 1).padStart(2, "0")}</span>
+          <div>
+            <h2>${escapeHtml(titleParts(section.title).label)}</h2>
+            <p>${escapeHtml(descriptions[sectionIndex] || titleParts(section.title).detail)}</p>
+          </div>
+          <b>${docs.length} 篇</b>
+        </header>
+        <div class="directory-list">
+          ${docs.map((doc) => {
+            chapter += 1;
+            const parent = state.byToken.get(doc.parentToken);
+            return `
+              <a href="#/doc/${doc.nodeToken}">
+                <span class="directory-no">${String(chapter).padStart(2, "0")}</span>
+                <span><strong>${escapeHtml(doc.title)}</strong><small>${escapeHtml(parent && parent.depth > section.depth ? parent.title : "豆包工作实战")}</small></span>
+                <b aria-hidden="true">→</b>
+              </a>`;
+          }).join("")}
+        </div>
+      </section>`;
+  }).join("");
+
+  renderHubShell({
+    kind: "bluebook",
+    overline: "BLUEBOOK DIRECTORY · 01—03",
+    title: "豆包工作蓝皮书完整目录",
+    lede: "从第一次打开豆包工作，到把一次成功沉淀为可复用的方法。你可以顺序阅读，也可以直接跳到手头的问题。",
+    meta: `${readingDocuments().length} 篇可阅读内容 · 持续更新`,
+    actions: `<a class="hub-action primary" href="#/doc/${start.nodeToken}">从第一篇开始 ${iconArrow()}</a><a class="hub-action" href="#/reading-guide">先看阅读路线</a>`,
+    content: directory,
+  });
+}
+
+function renderCasesPage() {
+  setHubMode("豆包工作案例集");
+  const root = rootDocument();
+  const sections = state.children.get(root.nodeToken) || [];
+  const scenarioSection = sections.find((section) => section.title.includes("场景篇")) || sections.at(-1);
+  const groups = state.children.get(scenarioSection?.nodeToken) || [];
+  const totalCases = groups.reduce((sum, group) => sum + descendants(group.nodeToken).filter((doc) => !doc.hasChild && doc.content?.trim()).length, 0);
+  const caseGroups = groups.map((group, groupIndex) => {
+    const cases = descendants(group.nodeToken).filter((doc) => !doc.hasChild && doc.content?.trim());
+    return `
+      <section class="case-group">
+        <header class="case-group-head">
+          <span>S${String(groupIndex + 1).padStart(2, "0")}</span>
+          <h2>${escapeHtml(group.title)}</h2>
+          <b>${cases.length} CASES</b>
+        </header>
+        <div class="case-grid">
+          ${cases.map((doc, index) => {
+            const excerpt = textOnly(doc.content);
+            return `
+              <a class="case-card" href="#/doc/${doc.nodeToken}">
+                <span class="case-index">CASE ${String(index + 1).padStart(2, "0")}</span>
+                <h3>${escapeHtml(doc.title)}</h3>
+                <p>${escapeHtml(excerpt.slice(0, 105))}${excerpt.length > 105 ? "…" : ""}</p>
+                <span class="case-proof">${doc.images?.length || 0} 张图片${doc.videos?.length ? ` · ${doc.videos.length} 段视频` : ""}<b>阅读案例 →</b></span>
+              </a>`;
+          }).join("")}
+        </div>
+      </section>`;
+  }).join("");
+
+  renderHubShell({
+    kind: "cases",
+    overline: "REAL WORK ARCHIVE",
+    title: "豆包工作案例集",
+    lede: "这里不是功能清单，而是一组从真实问题、实际材料和明确交付物出发的工作记录。选择与你最近的场景直接进入。",
+    meta: `${groups.length} 类工作场景 · ${totalCases} 个案例`,
+    actions: `<a class="hub-action primary" href="#/help">按问题找方案 ${iconArrow()}</a><button class="hub-action hub-search-trigger" type="button">搜索全部案例</button>`,
+    content: caseGroups,
+  });
+}
+
+function taskCategorySpecs() {
+  return [
+    ["文档与表格", "整理、校对、分析并交付 Word、Excel 与 PPT。", /Word|Excel|PPT|文档|表格|排版/],
+    ["研究与分析", "从临时调研、公司研究到市场与财报分析。", /研究|调研|财报|投资|公司|市场|分析/],
+    ["内容与创作", "完成选题、长文、公众号、口播、视频与 GEO。", /文章|公众号|创作|视频|自媒体|GEO|内容/],
+    ["效率与自动化", "处理收件箱、会议、日报、提醒和定时任务。", /自动|日报|定时|收件箱|会议|提醒/],
+    ["文件与远程", "整理文件、比较版本，并在离开电脑后继续执行。", /文件|桌面|手机|远程|电脑|版本/],
+    ["知识沉淀", "让收藏、制度、经验和项目材料以后真正能搜。", /知识|收藏|经验|制度|读一本书|项目结束/],
+  ];
+}
+
+function renderHelpPage() {
+  setHubMode("帮你解决豆包工作场景问题");
+  const leaves = state.docs.filter((doc) => !doc.hasChild && doc.content?.trim());
+  const used = new Set();
+  const categories = taskCategorySpecs().map(([title, description, pattern], index) => {
+    const docs = leaves.filter((doc) => !used.has(doc.nodeToken) && pattern.test(doc.title)).slice(0, 4);
+    docs.forEach((doc) => used.add(doc.nodeToken));
+    return `
+      <section class="solution-card">
+        <span class="solution-no">${String(index + 1).padStart(2, "0")}</span>
+        <h2>${escapeHtml(title)}</h2>
+        <p>${escapeHtml(description)}</p>
+        <div>${docs.map((doc) => `<a href="#/doc/${doc.nodeToken}"><span>${escapeHtml(doc.title)}</span><b>↗</b></a>`).join("")}</div>
+      </section>`;
+  }).join("");
+
+  const method = [
+    ["定义真实场景", "说清你现在怎样工作、卡在哪里，以及这件事为什么值得交给豆包工作。"],
+    ["准备必要输入", "列出需要使用的文件、网页、系统和数据，先去掉无关材料。"],
+    ["约定安全边界", "明确哪些文件不能改、哪些动作必须先确认、哪些信息不能外发。"],
+    ["写清验收标准", "定义最终交付物、格式、截止时间，以及怎样判断任务真的完成。"],
+  ];
+
+  renderHubShell({
+    kind: "help",
+    overline: "SCENARIO SUPPORT · SELF-SERVICE",
+    title: "有工作场景，不知道怎么用豆包工作解决？",
+    lede: "先从问题出发，而不是从功能出发。下面按常见任务给出可直接进入的案例，也提供一套描述问题的方法。",
+    meta: "6 类任务入口 · 全文可搜索",
+    actions: `<button class="hub-action primary hub-search-trigger" type="button">搜索你的问题 ${iconArrow()}</button><a class="hub-action" href="#/cases">浏览全部案例</a>`,
+    content: `
+      <section class="solution-grid" aria-label="按问题选择">${categories}</section>
+      <section class="help-method">
+        <p class="section-kicker">HOW TO START</p>
+        <div class="section-heading"><h2>把问题描述清楚，再让豆包工作开始</h2><p>一项任务是否稳定，往往取决于输入、边界和验收标准，而不是提示词写得有多长。</p></div>
+        <ol>${method.map(([title, text], index) => `<li><span>${String(index + 1).padStart(2, "0")}</span><div><h3>${escapeHtml(title)}</h3><p>${escapeHtml(text)}</p></div></li>`).join("")}</ol>
+      </section>`,
+  });
+}
+
+function renderReadingGuidePage() {
+  setHubMode("豆包工作阅读与学习指南");
+  const root = rootDocument();
+  const sections = state.children.get(root.nodeToken) || [];
+  const useDocs = descendants(sections[0]?.nodeToken).filter((doc) => !doc.hasChild && doc.content?.trim());
+  const starterDocs = descendants(sections[1]?.nodeToken).filter((doc) => !doc.hasChild && doc.content?.trim());
+  const scenarioGroups = state.children.get(sections[2]?.nodeToken) || [];
+  const systemDocs = useDocs.filter((doc) => /Skill|连接器|API|自动化|Agent/.test(doc.title));
+  const guideBlocks = [
+    {
+      no: "01", title: "第一次使用豆包工作", label: "NEW USER",
+      text: "先认识界面，再完成一个能检查结果的小任务。不要一开始就搭复杂流程。",
+      docs: useDocs.slice(0, 5),
+    },
+    {
+      no: "02", title: "先把一件小事交出去", label: "FIRST TASK",
+      text: "从文档、表格、文件整理或每日简报开始，建立对输入与交付物的手感。",
+      docs: starterDocs,
+    },
+    {
+      no: "03", title: "按真实工作场景进入", label: "REAL SCENARIO",
+      text: "已经知道自己要解决什么，就直接选择最接近的岗位或任务场景。",
+      docs: scenarioGroups.map((group) => firstReadable(group.nodeToken)).filter(Boolean),
+    },
+    {
+      no: "04", title: "把一次成功变成稳定方法", label: "WORK SYSTEM",
+      text: "任务跑通以后，再补上 Skill、连接器、自动化和多 Agent，让方法可以复用。",
+      docs: systemDocs,
+    },
+  ];
+
+  const content = `
+    <section class="guide-route">
+      ${guideBlocks.map((block) => `
+        <article class="guide-block">
+          <header><span>${block.no}</span><small>${block.label}</small></header>
+          <h2>${block.title}</h2>
+          <p>${block.text}</p>
+          <ol>${block.docs.slice(0, 6).map((doc) => `<li><a href="#/doc/${doc.nodeToken}">${escapeHtml(doc.title)}<b>→</b></a></li>`).join("")}</ol>
+        </article>`).join("")}
+    </section>
+    <section class="reading-rules">
+      <p class="section-kicker">READ · DO · KEEP</p>
+      <div class="section-heading"><h2>边读边做，至少留下一个可复用结果</h2><p>每完成一篇，建议保留提示词、输入清单、验收标准或操作记录。真正有价值的不是“看过”，而是下次还能再做成。</p></div>
+      <div class="rule-strip"><span><b>01</b> 先选真实任务</span><span><b>02</b> 明确安全边界</span><span><b>03</b> 验收最终交付</span><span><b>04</b> 沉淀可复用方法</span></div>
+    </section>`;
+
+  renderHubShell({
+    kind: "reading-guide",
+    overline: "READING PATH · 01—04",
+    title: "豆包工作阅读与学习指南",
+    lede: "不必从第一页开始背功能。先找到当前最接近的工作问题，完成一项真实任务，再沿着使用、入门、场景和工作系统逐步深入。",
+    meta: "适合新手、任务实践者与团队负责人",
+    actions: `<a class="hub-action primary" href="#/bluebook">查看完整目录 ${iconArrow()}</a><a class="hub-action" href="#/cases">直接进入案例</a>`,
+    content,
+  });
 }
 
 function sidebarHtml(activeDoc) {
@@ -528,7 +762,7 @@ function renderMarkdown(markdown, pageTitle) {
 
 function renderReader(doc) {
   document.body.classList.add("reader-mode");
-  document.body.classList.remove("home-mode");
+  document.body.classList.remove("home-mode", "hub-mode");
   document.title = `${doc.title} · DoubaoWork Guide`;
   closeMobileSidebar();
   closePrimaryNav();
@@ -541,7 +775,40 @@ function renderReader(doc) {
   const position = sequence.findIndex((item) => item.nodeToken === doc.nodeToken);
   const previous = position > 0 ? sequence[position - 1] : null;
   const next = position >= 0 && position < sequence.length - 1 ? sequence[position + 1] : null;
-  const tocHtml = rendered.toc.length ? rendered.toc.map((item) => `<a class="depth-${item.level}" href="#${escapeHtml(item.id)}">${escapeHtml(item.text)}</a>`).join("") : `<span class="sidebar-label">本页没有二级标题</span>`;
+  const parent = state.byToken.get(doc.parentToken);
+  const isScenarioOverview = Boolean(parent?.title.includes("场景篇") && doc.hasChild);
+  const sceneTasks = isScenarioOverview
+    ? (state.children.get(doc.nodeToken) || []).filter((item) => !item.hasChild)
+    : [];
+  const quickAccessHtml = sceneTasks.length ? `
+    <section class="scenario-quick-access" id="scenario-tasks">
+      <header>
+        <div><span>QUICK ACCESS</span><h2>本场景任务</h2></div>
+        <b>${sceneTasks.length} TASKS</b>
+      </header>
+      <p class="scenario-quick-intro">选择与你现在最接近的任务，直接查看材料、步骤和可验收的交付结果。</p>
+      <div class="scenario-quick-list">
+        ${sceneTasks.map((task, index) => {
+          const excerpt = textOnly(task.content);
+          return `<a href="#/doc/${task.nodeToken}">
+            <span>${String(index + 1).padStart(2, "0")}</span>
+            <div><strong>${escapeHtml(task.title)}</strong><small>${escapeHtml(excerpt.slice(0, 76))}${excerpt.length > 76 ? "…" : ""}</small></div>
+            <b aria-hidden="true">→</b>
+          </a>`;
+        }).join("")}
+      </div>
+    </section>` : "";
+  const bodyHtml = rendered.html || quickAccessHtml || "<p>这个章节正在补充内容。</p>";
+  const tocHtml = rendered.toc.length
+    ? rendered.toc.map((item) => `<a class="depth-${item.level}" href="#${escapeHtml(item.id)}">${escapeHtml(item.text)}</a>`).join("")
+    : sceneTasks.length
+      ? `<a class="depth-2" href="#scenario-tasks">本场景任务</a>`
+      : `<span class="sidebar-label">本页没有二级标题</span>`;
+  const articleNavHtml = previous || next ? `
+    <nav class="article-nav" aria-label="上一篇和下一篇">
+      ${previous ? `<a href="#/doc/${previous.nodeToken}"><small>← 上一篇</small><b>${escapeHtml(previous.title)}</b></a>` : "<span></span>"}
+      ${next ? `<a class="next" href="#/doc/${next.nodeToken}"><small>下一篇 →</small><b>${escapeHtml(next.title)}</b></a>` : ""}
+    </nav>` : "";
 
   main.innerHTML = `
     <div class="reader-shell">
@@ -556,16 +823,13 @@ function renderReader(doc) {
           <p class="overline">DOUBAO WORK · FIELD NOTE</p>
           <h1>${escapeHtml(doc.title)}</h1>
           <div class="article-meta">
-            <span>约 ${minutes} 分钟阅读</span>
-            <span>修订版本 ${doc.revisionId}</span>
+            <span>${sceneTasks.length ? `${sceneTasks.length} 个任务入口` : `约 ${minutes} 分钟阅读`}</span>
+            ${doc.revisionId ? `<span>修订版本 ${escapeHtml(doc.revisionId)}</span>` : ""}
             <span>${doc.images?.length || 0} 张图片${doc.videos?.length ? ` · ${doc.videos.length} 段视频` : ""}</span>
           </div>
         </header>
-        <div class="article-body">${rendered.html || "<p>这个章节正在补充内容。</p>"}</div>
-        <nav class="article-nav" aria-label="上一篇和下一篇">
-          ${previous ? `<a href="#/doc/${previous.nodeToken}"><small>← 上一篇</small><b>${escapeHtml(previous.title)}</b></a>` : "<span></span>"}
-          ${next ? `<a class="next" href="#/doc/${next.nodeToken}"><small>下一篇 →</small><b>${escapeHtml(next.title)}</b></a>` : ""}
-        </nav>
+        <div class="article-body">${bodyHtml}</div>
+        ${articleNavHtml}
       </article>
       <aside class="toc" aria-label="本页目录"><p class="toc-title">本页目录</p>${tocHtml}</aside>
     </div>`;
@@ -621,6 +885,20 @@ function bindReaderEvents() {
 function route() {
   if (!state.data) return;
   const hash = window.location.hash || "#/";
+
+  const hubRoutes = {
+    "#/bluebook": renderBluebookPage,
+    "#/cases": renderCasesPage,
+    "#/help": renderHelpPage,
+    "#/reading-guide": renderReadingGuidePage,
+  };
+  if (hubRoutes[hash]) {
+    hubRoutes[hash]();
+    updatePrimaryNavigation();
+    window.scrollTo({ top: 0, behavior: "instant" });
+    return;
+  }
+
   const docMatch = hash.match(/^#\/doc\/([^/?#]+)/);
   if (docMatch) {
     const doc = state.byToken.get(docMatch[1]);
@@ -647,7 +925,7 @@ function route() {
 }
 
 function renderNotFound() {
-  document.body.classList.remove("reader-mode");
+  document.body.classList.remove("reader-mode", "hub-mode");
   closePrimaryNav();
   main.innerHTML = `<section class="error-state"><h1>这一页暂时找不到</h1><p>内容目录可能刚刚调整过层级。</p><a href="#/">返回指南首页</a></section>`;
 }
@@ -708,12 +986,39 @@ function renderSearchResults(rawQuery) {
 
 function toggleTheme() {
   const current = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-  document.documentElement.dataset.theme = current;
-  localStorage.setItem("doubao-guide-theme", current);
+  applyTheme(current, true);
+}
+
+function applyTheme(theme, persist = false) {
+  const next = theme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = next;
+  document.documentElement.style.colorScheme = next;
+  themeToggle?.setAttribute("aria-pressed", String(next === "dark"));
+  themeToggle?.setAttribute("aria-label", next === "dark" ? "切换到浅色模式" : "切换到深色模式");
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#071827" : "#c0e3f9");
+  if (persist) {
+    try { localStorage.setItem("doubao-guide-theme", next); } catch { /* storage can be unavailable on file previews */ }
+  }
 }
 
 function setupTheme() {
-  document.documentElement.dataset.theme = "light";
+  let preferred = document.documentElement.dataset.theme;
+  try {
+    preferred = localStorage.getItem("doubao-guide-theme") || preferred;
+  } catch { /* keep the theme selected by the inline bootstrap */ }
+  applyTheme(preferred || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+}
+
+function setCommunityPopover(open) {
+  if (!communityPopover || !communityTrigger) return;
+  communityPopover.hidden = !open;
+  communityTrigger.setAttribute("aria-expanded", String(open));
+  document.body.classList.toggle("community-open", open);
+  if (open) requestAnimationFrame(() => communityClose?.focus());
+}
+
+function closeCommunityPopover() {
+  setCommunityPopover(false);
 }
 
 function configurePrimaryNavigation() {
@@ -727,10 +1032,10 @@ function configurePrimaryNavigation() {
 function updatePrimaryNavigation() {
   const hash = window.location.hash || "#/";
   let active = "home";
-  if (hash.startsWith("#/doc/")) active = "start";
-  else if (hash === "#scenarios") active = "cases";
-  else if (hash === "#tasks") active = "solve";
-  else if (hash === "#paths") active = "guide";
+  if (hash.startsWith("#/doc/") || hash === "#/bluebook") active = "start";
+  else if (hash === "#/cases") active = "cases";
+  else if (hash === "#/help") active = "solve";
+  else if (hash === "#/reading-guide") active = "guide";
 
   primaryNav.querySelectorAll("[data-nav]").forEach((link) => {
     if (link.dataset.nav === active) link.setAttribute("aria-current", "page");
@@ -748,6 +1053,7 @@ function closePrimaryNav() {
   document.body.classList.remove("nav-open");
   navToggle.setAttribute("aria-expanded", "false");
   navToggle.setAttribute("aria-label", "打开主导航");
+  closeCommunityPopover();
 }
 
 function openMobileSidebar() {
@@ -804,7 +1110,12 @@ async function init() {
 
 document.querySelectorAll(".search-trigger").forEach((button) => button.addEventListener("click", openSearch));
 document.querySelector(".search-close").addEventListener("click", () => searchDialog.close());
-document.querySelector(".theme-toggle")?.addEventListener("click", toggleTheme);
+themeToggle?.addEventListener("click", toggleTheme);
+communityTrigger?.addEventListener("click", () => setCommunityPopover(communityPopover?.hidden ?? true));
+communityClose?.addEventListener("click", () => {
+  closeCommunityPopover();
+  communityTrigger?.focus();
+});
 document.querySelector(".image-close").addEventListener("click", () => imageDialog.close());
 navToggle.addEventListener("click", () => document.body.classList.contains("nav-open") ? closePrimaryNav() : openPrimaryNav());
 primaryNav.querySelectorAll("a").forEach((link) => link.addEventListener("click", closePrimaryNav));
@@ -831,10 +1142,18 @@ window.addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
     event.preventDefault();
     openSearch();
-  } else if (event.key === "Escape" && document.body.classList.contains("nav-open")) {
-    closePrimaryNav();
-    navToggle.focus();
+  } else if (event.key === "Escape") {
+    if (!communityPopover?.hidden) {
+      closeCommunityPopover();
+      communityTrigger?.focus();
+    } else if (document.body.classList.contains("nav-open")) {
+      closePrimaryNav();
+      navToggle.focus();
+    }
   }
+});
+document.addEventListener("pointerdown", (event) => {
+  if (!communityPopover?.hidden && !event.target.closest(".community-nav")) closeCommunityPopover();
 });
 window.addEventListener("hashchange", route);
 window.addEventListener("scroll", updateReadingProgress, { passive: true });
