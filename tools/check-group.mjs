@@ -23,7 +23,11 @@ try {
   await trigger.click();
   await page.waitForSelector('.groupbox[data-open="true"]');
   await page.waitForFunction(
-    () => document.querySelector(".groupbox img")?.naturalWidth > 0
+    () => {
+      const image = document.querySelector(".groupbox img");
+      return image?.complete && image.naturalWidth === 396 && image.naturalHeight === 396;
+    },
+    { timeout: 10000 }
   );
 
   const opened = await page.evaluate(() => {
@@ -37,6 +41,8 @@ try {
       height: Math.round(rect?.height || 0),
       imageVisible: !!image && !image.hidden && image.complete && image.naturalWidth > 0,
       imageSrc: image?.getAttribute("src"),
+      imageWidth: image?.naturalWidth,
+      imageHeight: image?.naturalHeight,
     };
   });
 
@@ -44,6 +50,11 @@ try {
   assert.notEqual(opened.ariaModal, "true", "悬浮二维码不应声明为模态弹层");
   assert.ok(opened.width <= 280 && opened.height <= 280, "悬浮层不应覆盖整个视口");
   assert.equal(opened.imageVisible, true, "二维码图片应成功显示");
+  assert.deepEqual(
+    [opened.imageWidth, opened.imageHeight],
+    [396, 396],
+    "二维码应是用户指定的 396×396 图片"
+  );
   assert.match(
     opened.imageSrc || "",
     /^assets\/qr-group\.png\?v=.+/,
