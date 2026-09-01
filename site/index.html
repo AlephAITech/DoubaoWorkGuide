@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="css/layout.css" />
     <link rel="stylesheet" href="css/article.css" />
   </head>
-  <body>
+  <body class="is-home is-booting">
     <a class="skip-link" href="#content">跳到正文</a>
 
     <header class="masthead">
@@ -102,10 +102,60 @@
     </div>
 
     <main id="content">
-      <div class="state" id="boot">
-        <div class="spinner" aria-hidden="true"></div>
-        <p class="state__text">正在载入内容…</p>
-      </div>
+      <section class="bookcover bookcover--boot" id="boot" aria-label="豆包工作蓝皮书首页" aria-busy="true">
+        <div class="bookcover__grid" aria-hidden="true"></div>
+        <div class="bookcover__notes" aria-hidden="true">
+          <span class="bc-note" style="left:10%;top:24%;--i:0">塞满的收件箱</span>
+          <span class="bc-note" style="left:27%;top:13%;--i:1">今天写什么</span>
+          <span class="bc-note" style="left:8%;top:62%;--i:2">一张产品原图</span>
+          <span class="bc-note" style="left:20%;top:80%;--i:3">随手收藏的以后</span>
+          <span class="bc-note" style="left:46%;top:16%;--i:4">五分钟跑通第一个任务</span>
+          <span class="bc-note" style="left:74%;top:11%;--i:5">开盘前的研究清单</span>
+          <span class="bc-note" style="left:85%;top:28%;--i:6">出门也能盯任务</span>
+          <span class="bc-note" style="left:82%;top:60%;--i:7">定时任务准点交</span>
+          <span class="bc-note" style="left:68%;top:82%;--i:8">一支多 Agent 小队</span>
+        </div>
+        <div class="bookcover__spine" aria-hidden="true"><span>豆包工作蓝皮书 · 第一版 · 2026</span></div>
+        <span class="bookcover__reg bookcover__reg--tl" aria-hidden="true"></span>
+        <span class="bookcover__reg bookcover__reg--tr" aria-hidden="true"></span>
+        <span class="bookcover__reg bookcover__reg--bl" aria-hidden="true"></span>
+        <span class="bookcover__reg bookcover__reg--br" aria-hidden="true"></span>
+
+        <div class="bookcover__bar">
+          <span class="bookcover__brand">DOUBAO WORK<span class="bookcover__brand-ext"> · FIELD MANUAL</span></span>
+          <span class="bookcover__nav">
+            <button class="chip chip--ghost" type="button" data-search>搜索</button>
+            <a class="chip chip--ghost" href="#/toc">目录</a>
+            <button class="chip chip--ghost" type="button" data-group>交流群</button>
+          </span>
+        </div>
+
+        <div class="bookcover__center">
+          <p class="bookcover__kicker">
+            <span class="bookcover__dimline" aria-hidden="true"></span>
+            <span class="bookcover__kicker-text">豆包工作 · 系统化中文实践</span>
+            <span class="bookcover__dimline" aria-hidden="true"></span>
+          </p>
+          <h1 class="bookcover__title">豆包工作蓝皮书</h1>
+          <p class="bookcover__sub">把豆包工作用起来，从第一个能验收的任务开始。</p>
+          <div class="bookcover__actions">
+            <a class="bcbtn bcbtn--solid" href="#/intro">开始阅读</a>
+            <a class="bcbtn bcbtn--ghost" href="#/toc">查看目录</a>
+          </div>
+        </div>
+
+        <div class="bookcover__ticker" aria-hidden="true">
+          <div class="bookcover__ticker-track">
+            <span>收件箱清零　◦　五分钟跑通第一个任务　◦　一张产品原图　◦　知识库整理　◦　自动资讯简报　◦　</span>
+            <span>收件箱清零　◦　五分钟跑通第一个任务　◦　一张产品原图　◦　知识库整理　◦　自动资讯简报　◦　</span>
+          </div>
+        </div>
+
+        <div class="bookcover__foot">
+          <span class="bookcover__hint" aria-hidden="true">↓ 往下翻</span>
+          <p class="bookcover__stats">49 篇 · 约 16.4 万字 · 502 张实测截图 · 18 段演示视频</p>
+        </div>
+      </section>
       <div id="app" hidden></div>
     </main>
 

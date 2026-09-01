@@ -46,11 +46,11 @@ console.log("记录的位置:", saved);
 
 await page.goto(`${ORIGIN}/#/`, { waitUntil: "networkidle0" });
 await wait(300);
-const resume = await page.$eval(".resume__link", (el) => el.textContent).catch(() => "（没有出现）");
+const resume = await page.$eval("[data-resume]", (el) => el.textContent).catch(() => "（没有出现）");
 console.log("封面继续阅读:", resume);
 
 // 4. 点继续阅读，验证滚动位置恢复
-await page.click(".resume__link");
+await page.click("[data-resume]");
 await wait(600);
 console.log("恢复后 scrollY:", await page.evaluate(() => window.scrollY));
 

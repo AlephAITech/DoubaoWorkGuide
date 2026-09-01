@@ -65,13 +65,41 @@
 
 @media (max-width: 720px) {
   .masthead {
-    top: 20px;
+    top: 16px;
+  }
+  .masthead__inner {
+    padding: 0 var(--pad-x);
+  }
+  .masthead .wordmark__name,
+  .pinbar .wordmark__name {
+    display: none;
+  }
+  .masthead__chips {
+    right: var(--pad-x);
+    align-items: center;
+    gap: 6px;
   }
   .masthead__chips .chip {
-    padding: var(--s-4) var(--s-12);
+    flex: none;
+    padding: 6px 12px;
+    white-space: nowrap;
   }
-  .chip__kbd {
+  .masthead__chips .chip__quiet,
+  .masthead__chips .chip__sep {
     display: none;
+  }
+  .pinbar__inner {
+    gap: var(--s-8);
+    padding: 10px var(--pad-x);
+  }
+  .pinbar__chips {
+    flex: none;
+    gap: 6px;
+  }
+  .pinbar__chips .chip {
+    flex: none;
+    padding: 6px 10px;
+    white-space: nowrap;
   }
 }
 
@@ -716,6 +744,25 @@ body.is-home .view {
 }
 .bookcover__foot {
   animation: bc-fade 700ms var(--ease-out) 820ms backwards;
+}
+
+/* 首个 HTML 响应已经画出同款书封。内容 JSON 到达后会换成完整首页；
+   这次接管不重复播放进场，避免标题闪退后再升起。跑马灯仍保持连续运动。 */
+.bookcover--hydrated :is(
+    .bookcover__grid,
+    .bc-note,
+    .bookcover__spine,
+    .bookcover__reg,
+    .bookcover__bar,
+    .bookcover__kicker,
+    .bookcover__sub,
+    .bookcover__actions,
+    .bookcover__resume,
+    .bookcover__ticker,
+    .bookcover__foot,
+    .bookcover__dimline
+  ) {
+  animation: none;
 }
 
 /* ---- 退场：点「开始阅读」等入口，封面以左缘为轴翻开，露出白纸内页 ----
@@ -1370,112 +1417,40 @@ body.is-home .view {
 }
 
 /* ------------------------------------------------------------
-   交流群弹层：白面板 + 二维码，与分享弹层同一套浮层语言
+   交流群悬浮二维码：图片本身就是浮层，不再套模态框或二级页面
    ------------------------------------------------------------ */
 
 .groupbox {
   position: fixed;
-  inset: 0;
-  z-index: 110;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--s-24);
-  background: color-mix(in srgb, var(--canvas) 78%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  z-index: 120;
+  width: min(232px, calc(100vw - 32px));
+  height: min(232px, calc(100vw - 32px));
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity var(--dur-ui) var(--ease);
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top right;
+  transition: opacity var(--dur-ui) var(--ease), transform var(--dur-panel) var(--ease-out),
+    visibility 0s var(--dur-panel);
 }
 
 .groupbox[data-open="true"] {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
-}
-
-.groupbox__panel {
-  width: min(360px, 100%);
-  padding: var(--s-32);
-  text-align: center;
-  background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-subtle);
-  transform: scale(0.98);
-  transition: transform var(--dur-panel) var(--ease-out);
-}
-
-.groupbox[data-open="true"] .groupbox__panel {
   transform: none;
+  transition: opacity var(--dur-ui) var(--ease), transform var(--dur-panel) var(--ease-out),
+    visibility 0s;
 }
 
-.groupbox__kicker {
-  font-size: 11px;
-  font-weight: var(--w-medium);
-  letter-spacing: 0.2em;
-  color: var(--ink-faded);
-}
-
-.groupbox__qr {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 232px;
-  height: 232px;
-  margin: var(--s-16) auto 0;
-  border: 1px solid var(--hairline);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.groupbox__qr img {
+.groupbox img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-
-/* 站内 img 全局是 display:block，会盖掉 [hidden] 的 UA 规则，这里强制 */
-.groupbox [hidden] {
-  display: none !important;
-}
-
-.groupbox__empty {
-  padding: var(--s-16);
-}
-
-.groupbox__empty-title {
-  font-size: var(--t-body);
-  font-weight: var(--w-medium);
-  color: var(--ink-muted);
-}
-
-.groupbox__empty-hint {
-  margin-top: var(--s-8);
-  font-size: var(--t-caption);
-  line-height: 1.7;
-  color: var(--ink-faded);
-}
-
-.groupbox__empty-hint code {
-  font-size: 12px;
-}
-
-.groupbox__title {
-  margin-top: var(--s-16);
-  font-size: var(--t-body);
-  font-weight: var(--w-semibold);
-  color: var(--ink);
-}
-
-.groupbox__hint {
-  margin-top: var(--s-4);
-  font-size: var(--t-caption);
-  color: var(--ink-muted);
-}
-
-.groupbox__close {
-  margin-top: var(--s-16);
+  border-radius: 10px;
+  outline: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-subtle);
 }
 
 /* 「继续阅读」：嵌在封面与目录的统计行里，是站内少数几处品牌蓝 */

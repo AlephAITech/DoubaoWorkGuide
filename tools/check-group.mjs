@@ -1,4 +1,5 @@
-/* 交流群弹层自检（开发用）：node tools/check-group.mjs */
+/* 交流群悬浮二维码回归测试：node tools/check-group.mjs */
+import assert from "node:assert/strict";
 import puppeteer from "puppeteer-core";
 
 const CHROME =
@@ -6,35 +7,58 @@ const CHROME =
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const ORIGIN = process.env.ORIGIN || "http://127.0.0.1:4173";
 
-const browser = await puppeteer.launch({ executablePath: CHROME, headless: "shell" });
+const browser = await puppeteer.launch({
+  executablePath: CHROME,
+  headless: "shell",
+  args: ["--hide-scrollbars", "--disable-gpu"],
+});
 const page = await browser.newPage();
-await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 2 });
 
-await page.goto(`${ORIGIN}/#/`, { waitUntil: "networkidle0" });
-await new Promise((r) => setTimeout(r, 1200));
+try {
+  await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 });
+  await page.goto(`${ORIGIN}/#/`, { waitUntil: "networkidle0" });
 
-// 点「交流群」弹出弹层（当前无二维码图，应显示待配置占位）
-await page.click("[data-group]");
-await new Promise((r) => setTimeout(r, 600));
-console.log(
-  await page.evaluate(() => ({
-    open: document.querySelector(".groupbox")?.dataset.open,
-    emptyShown: !document.querySelector(".groupbox__empty")?.hidden,
-    imgHidden: document.querySelector(".groupbox__qr img")?.hidden,
-  }))
-);
-await page.screenshot({ path: "tools/shots/groupbox.png" });
+  const trigger = await page.$(".bookcover [data-group]");
+  assert.ok(trigger, "页面应提供交流群入口");
+  await trigger.click();
+  await page.waitForSelector('.groupbox[data-open="true"]');
+  await page.waitForFunction(
+    () => document.querySelector(".groupbox img")?.naturalWidth > 0
+  );
 
-// Esc 关闭
-await page.keyboard.press("Escape");
-await new Promise((r) => setTimeout(r, 400));
-console.log("after esc:", await page.evaluate(() => document.querySelector(".groupbox")?.dataset.open));
+  const opened = await page.evaluate(() => {
+    const box = document.querySelector(".groupbox");
+    const image = box?.querySelector("img");
+    const rect = box?.getBoundingClientRect();
+    return {
+      bodyLocked: document.body.classList.contains("is-locked"),
+      ariaModal: box?.getAttribute("aria-modal"),
+      width: Math.round(rect?.width || 0),
+      height: Math.round(rect?.height || 0),
+      imageVisible: !!image && !image.hidden && image.complete && image.naturalWidth > 0,
+      imageSrc: image?.getAttribute("src"),
+    };
+  });
 
-// 再开一次，点背景关闭
-await page.click("[data-group]");
-await new Promise((r) => setTimeout(r, 400));
-await page.mouse.click(80, 450);
-await new Promise((r) => setTimeout(r, 400));
-console.log("after backdrop:", await page.evaluate(() => document.querySelector(".groupbox")?.dataset.open));
+  assert.equal(opened.bodyLocked, false, "悬浮二维码不应锁定页面滚动");
+  assert.notEqual(opened.ariaModal, "true", "悬浮二维码不应声明为模态弹层");
+  assert.ok(opened.width <= 280 && opened.height <= 280, "悬浮层不应覆盖整个视口");
+  assert.equal(opened.imageVisible, true, "二维码图片应成功显示");
+  assert.equal(opened.imageSrc, "assets/qr-group.png", "应使用站内固定二维码资源");
 
-await browser.close();
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(
+    () => document.querySelector(".groupbox")?.dataset.open === "false"
+  );
+
+  await trigger.click();
+  await page.waitForSelector('.groupbox[data-open="true"]');
+  await page.mouse.click(60, 420);
+  await page.waitForFunction(
+    () => document.querySelector(".groupbox")?.dataset.open === "false"
+  );
+
+  console.log(JSON.stringify({ status: "PASS", opened }, null, 2));
+} finally {
+  await browser.close();
+}

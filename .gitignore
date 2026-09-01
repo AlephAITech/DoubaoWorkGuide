@@ -1,4 +1,28 @@
+# macOS / editor metadata
 .DS_Store
+._*
+*.swp
+
+# Local dependencies and package-manager logs
+/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local environment and secrets (keep a shareable template if one is added)
+.env
+.env.*
+!.env.example
+
+# Test output, coverage and disposable caches
+/tools/shots/*
+!/tools/shots/.gitkeep
+/coverage/
+/.cache/
+/.tmp/
+/tmp/
+*.log
 
 # Internal content-maintenance workspace
 /content/

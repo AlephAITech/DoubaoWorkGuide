@@ -32,6 +32,7 @@ const state = {
   index: [], // 全文搜索索引
   keyboardNav: false,
   cleanup: [],
+  hydrateHome: !location.hash || location.hash === "#" || location.hash === "#/",
 };
 
 /* ------------------------------------------------------------
@@ -339,7 +340,7 @@ function viewLanding() {
 
   return `
     <div class="view">
-      <section class="bookcover">
+      <section class="bookcover${state.hydrateHome ? " bookcover--hydrated" : ""}">
         <div class="bookcover__grid" aria-hidden="true"></div>
         <div class="bookcover__lamp" aria-hidden="true"></div>
         <div class="bookcover__notes" aria-hidden="true">${COVER_NOTES.map(
@@ -457,10 +458,11 @@ function initLanding() {
   const cover = dom.app.querySelector(".bookcover");
   if (!cover) return;
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const hydrated = cover.classList.contains("bookcover--hydrated");
 
   // 标题逐字：每字包一层 overflow hidden 遮罩，60ms 间隔升起
   const title = cover.querySelector(".bookcover__title");
-  if (title) {
+  if (title && !hydrated) {
     title.innerHTML = [...title.textContent]
       .map(
         (ch, i) =>
@@ -528,7 +530,7 @@ function initLanding() {
 
   // 统计行数字滚动：与页脚淡入（820ms）衔接，1s 内滚到位
   const nums = cover.querySelectorAll(".bc-num");
-  if (nums.length && !reduced) {
+  if (nums.length && !reduced && !hydrated) {
     const start = performance.now() + 700;
     let raf = 0;
     const tick = (now) => {
@@ -1000,6 +1002,8 @@ function viewNotFound() {
 }
 
 function showLoadError(error) {
+  document.body.classList.remove("is-home", "is-booting");
+  dom.boot.className = "state";
   dom.boot.innerHTML = `
     <h1 class="display">内容没有载入成功</h1>
     <p class="state__text">
@@ -1369,61 +1373,60 @@ function closeShareBox() {
 }
 
 /* ------------------------------------------------------------
-   交流群弹层：微信扫码二维码。
-   二维码图片放到 site/assets/qr-group.png 即生效；缺图时显示待配置占位
+   交流群悬浮二维码：贴近触发按钮出现，不遮页面、不锁滚动。
    ------------------------------------------------------------ */
 
 let groupbox = null;
+let groupboxTrigger = null;
 
-function openGroupBox() {
+function positionGroupBox(trigger) {
+  if (!groupbox || !trigger?.isConnected) {
+    closeGroupBox();
+    return;
+  }
+
+  const anchor = trigger.getBoundingClientRect();
+  const box = groupbox.getBoundingClientRect();
+  const margin = 12;
+  const compact = window.innerWidth <= 720;
+  let left = compact ? (window.innerWidth - box.width) / 2 : anchor.right - box.width;
+  let top = anchor.bottom + margin;
+
+  left = Math.min(window.innerWidth - box.width - margin, Math.max(margin, left));
+  if (top + box.height > window.innerHeight - margin) {
+    top = Math.max(margin, anchor.top - box.height - margin);
+  }
+
+  groupbox.style.left = `${Math.round(left)}px`;
+  groupbox.style.top = `${Math.round(top)}px`;
+}
+
+function openGroupBox(trigger) {
   if (!groupbox) {
     groupbox = document.createElement("div");
     groupbox.className = "groupbox";
     groupbox.dataset.open = "false";
     groupbox.setAttribute("role", "dialog");
-    groupbox.setAttribute("aria-modal", "true");
     groupbox.setAttribute("aria-label", "加入交流群");
-    groupbox.innerHTML = `
-      <div class="groupbox__panel">
-        <p class="groupbox__kicker">WECHAT GROUP</p>
-        <div class="groupbox__qr">
-          <img src="assets/qr-group.png" alt="豆包工作交流群二维码" />
-          <div class="groupbox__empty" hidden>
-            <p class="groupbox__empty-title">二维码待配置</p>
-            <p class="groupbox__empty-hint">把群二维码图片放到<br /><code>site/assets/qr-group.png</code></p>
-          </div>
-        </div>
-        <p class="groupbox__title">微信扫码加入交流群</p>
-        <p class="groupbox__hint">和一群把豆包工作用在真实任务里的人交流</p>
-        <button class="chip groupbox__close" type="button">关闭</button>
-      </div>`;
-
-    // 缺图时换占位说明
-    const img = groupbox.querySelector("img");
-    img.addEventListener("error", () => {
-      img.hidden = true;
-      groupbox.querySelector(".groupbox__empty").hidden = false;
-    });
-
-    groupbox.addEventListener("click", (event) => {
-      if (!event.target.closest(".groupbox__panel") || event.target.closest(".groupbox__close"))
-        closeGroupBox();
-    });
+    groupbox.innerHTML = `<img src="assets/qr-group.png" alt="豆包工作交流群二维码" />`;
 
     document.body.appendChild(groupbox);
   }
 
-  groupbox.__prevFocus = document.activeElement;
+  if (groupboxTrigger && groupboxTrigger !== trigger) {
+    groupboxTrigger.setAttribute("aria-expanded", "false");
+  }
+  groupboxTrigger = trigger;
+  groupboxTrigger?.setAttribute("aria-expanded", "true");
   groupbox.dataset.open = "true";
-  document.body.classList.add("is-locked");
-  groupbox.querySelector(".groupbox__close")?.focus();
+  positionGroupBox(trigger);
 }
 
 function closeGroupBox() {
   if (!groupbox || groupbox.dataset.open !== "true") return;
   groupbox.dataset.open = "false";
-  document.body.classList.remove("is-locked");
-  if (groupbox.__prevFocus?.isConnected) groupbox.__prevFocus.focus();
+  groupboxTrigger?.setAttribute("aria-expanded", "false");
+  groupboxTrigger = null;
 }
 
 /* ------------------------------------------------------------
@@ -1627,7 +1630,11 @@ function initSidetoc() {
 }
 
 function initReveal() {
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (
+    matchMedia("(prefers-reduced-motion: reduce)").matches ||
+    matchMedia("(max-width: 720px), (pointer: coarse)").matches
+  )
+    return;
 
   const blocks = [...dom.app.querySelectorAll(".reveal")].map((el) => ({
     el,
@@ -1929,10 +1936,19 @@ async function boot() {
   initAnchors();
   initSearch();
 
-  // 交流群入口：全局委托，书封等任意位置的 [data-group] 都能呼出
+  // 交流群入口：悬浮在当前按钮附近；再次点击、点空白或按 Esc 均关闭
   document.addEventListener("click", (event) => {
-    if (event.target.closest("[data-group]")) openGroupBox();
+    const trigger = event.target.closest("[data-group]");
+    if (trigger) {
+      event.preventDefault();
+      if (groupbox?.dataset.open === "true" && groupboxTrigger === trigger) closeGroupBox();
+      else openGroupBox(trigger);
+      return;
+    }
+    if (groupbox?.dataset.open === "true" && !event.target.closest(".groupbox")) closeGroupBox();
   });
+  window.addEventListener("resize", () => positionGroupBox(groupboxTrigger));
+  window.addEventListener("scroll", () => positionGroupBox(groupboxTrigger), { passive: true });
 
   try {
     const response = await fetch("content/site-content.json", { cache: "no-cache" });
@@ -1951,6 +1967,8 @@ async function boot() {
   dom.app.hidden = false;
   window.addEventListener("hashchange", render);
   render();
+  state.hydrateHome = false;
+  document.body.classList.remove("is-booting");
 }
 
 boot();
