@@ -1,0 +1,17 @@
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/js/*
+  Cache-Control: no-cache, must-revalidate
+
+/css/*
+  Cache-Control: no-cache, must-revalidate
+
+/content/site-content.json
+  Cache-Control: no-cache, must-revalidate
+
+/assets/qr-group.png
+  Cache-Control: no-cache, must-revalidate

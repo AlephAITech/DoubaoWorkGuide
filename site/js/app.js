@@ -5,14 +5,16 @@
    导航靠页眉右上的胶囊、目录页，以及每篇文末的下一节链接。
    ============================================================ */
 
-import { renderMarkdown, escapeHtml, plainText } from "./markdown.js";
+import { renderMarkdown, escapeHtml, plainText } from "./markdown.js?v=20260901-2";
 
 const READ_KEY = "dwg.read";
 const RESUME_KEY = "dwg.resume";
 const RAIL_KEY = "dwg.rail"; /* 左侧章节目录："1" 固定展开，其余（含首次）收起悬浮 */
+const ASSET_VERSION =
+  document.querySelector('meta[name="dwg-assets-version"]')?.content || "20260901-2";
+const versionedAsset = (path) => `${path}?v=${encodeURIComponent(ASSET_VERSION)}`;
 
 const dom = {
-  boot: document.getElementById("boot"),
   app: document.getElementById("app"),
   chipCount: document.getElementById("chip-count"),
   search: document.getElementById("search"),
@@ -32,7 +34,6 @@ const state = {
   index: [], // 全文搜索索引
   keyboardNav: false,
   cleanup: [],
-  hydrateHome: !location.hash || location.hash === "#" || location.hash === "#/",
 };
 
 /* ------------------------------------------------------------
@@ -340,7 +341,7 @@ function viewLanding() {
 
   return `
     <div class="view">
-      <section class="bookcover${state.hydrateHome ? " bookcover--hydrated" : ""}">
+      <section class="bookcover">
         <div class="bookcover__grid" aria-hidden="true"></div>
         <div class="bookcover__lamp" aria-hidden="true"></div>
         <div class="bookcover__notes" aria-hidden="true">${COVER_NOTES.map(
@@ -1003,15 +1004,17 @@ function viewNotFound() {
 
 function showLoadError(error) {
   document.body.classList.remove("is-home", "is-booting");
-  dom.boot.className = "state";
-  dom.boot.innerHTML = `
+  dom.app.hidden = false;
+  dom.app.innerHTML = `
+    <div class="state">
     <h1 class="display">内容没有载入成功</h1>
     <p class="state__text">
       页面需要通过本地服务器打开：直接双击 index.html 时，浏览器会拦截内容文件的读取。
       在项目根目录执行下面的命令，然后访问 http://127.0.0.1:4173/。
     </p>
     <code class="state__code">python3 -m http.server 4173 --bind 127.0.0.1 --directory site</code>
-    <p class="state__text">${escapeHtml(error?.message || error || "")}</p>`;
+    <p class="state__text">${escapeHtml(error?.message || error || "")}</p>
+    </div>`;
 }
 
 /* ------------------------------------------------------------
@@ -1408,7 +1411,9 @@ function openGroupBox(trigger) {
     groupbox.dataset.open = "false";
     groupbox.setAttribute("role", "dialog");
     groupbox.setAttribute("aria-label", "加入交流群");
-    groupbox.innerHTML = `<img src="assets/qr-group.png" alt="豆包工作交流群二维码" />`;
+    groupbox.innerHTML = `<img src="${versionedAsset(
+      "assets/qr-group.png"
+    )}" alt="豆包工作交流群二维码" />`;
 
     document.body.appendChild(groupbox);
   }
@@ -1951,7 +1956,9 @@ async function boot() {
   window.addEventListener("scroll", () => positionGroupBox(groupboxTrigger), { passive: true });
 
   try {
-    const response = await fetch("content/site-content.json", { cache: "no-cache" });
+    const response = await fetch(versionedAsset("content/site-content.json"), {
+      cache: "no-cache",
+    });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     buildModel(await response.json());
   } catch (error) {
@@ -1963,11 +1970,9 @@ async function boot() {
   if (dom.searchHint)
     dom.searchHint.textContent = `↑↓ 选择 · 回车打开 · 共 ${state.counts.docs} 篇可检索`;
 
-  dom.boot.remove();
-  dom.app.hidden = false;
   window.addEventListener("hashchange", render);
   render();
-  state.hydrateHome = false;
+  dom.app.hidden = false;
   document.body.classList.remove("is-booting");
 }
 

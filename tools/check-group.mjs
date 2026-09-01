@@ -44,7 +44,11 @@ try {
   assert.notEqual(opened.ariaModal, "true", "悬浮二维码不应声明为模态弹层");
   assert.ok(opened.width <= 280 && opened.height <= 280, "悬浮层不应覆盖整个视口");
   assert.equal(opened.imageVisible, true, "二维码图片应成功显示");
-  assert.equal(opened.imageSrc, "assets/qr-group.png", "应使用站内固定二维码资源");
+  assert.match(
+    opened.imageSrc || "",
+    /^assets\/qr-group\.png\?v=.+/,
+    "二维码应使用带版本号的站内资源，避免内置浏览器继续显示旧缓存"
+  );
 
   await page.keyboard.press("Escape");
   await page.waitForFunction(
