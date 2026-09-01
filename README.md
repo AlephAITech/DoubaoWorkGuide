@@ -28,8 +28,8 @@ DoubaoWork Guide 是一份面向豆包工作的系统化中文实践指南。项
 
 GitHub 适合查看项目结构和参与完善，连续阅读请使用在线版。
 
-- [从第一篇开始](https://doubaowork.homes/#/doc/doc-21b54541198d4915)
-- [查看阅读指南](https://doubaowork.homes/#/reading-guide)
+- [从第一篇开始](https://doubaowork.homes/#/p/21b54541198d4915)
+- [查看阅读指南](https://doubaowork.homes/#/intro)
 
 ## 适合谁阅读
 

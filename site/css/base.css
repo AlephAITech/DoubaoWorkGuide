@@ -1,0 +1,575 @@
+/* ============================================================
+   豆包工作指南 · 在线阅读
+   base.css — 设计令牌与排版基础
+
+   内文视觉系统的全部约定：
+
+   · 画布纯白 #ffffff，正文 #232323，次要 rgba(35,35,35,.4)，
+     最轻 #c8c8c8，发丝线 rgba(0,0,0,.1)
+   · 单一字体 Inter，三档字号 40 / 16 / 14，
+     行高 1.6 / 1.8 / 1.43，字重只用 400 / 500 / 600
+   · 完全扁平：无阴影、无底色分层，层级只靠亮度与留白
+   · 唯一色彩是蓝色渐变小方块，仅作行内标记
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   Inter · 自托管
+   ------------------------------------------------------------ */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/inter-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/inter-latin-500-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/inter-latin-600-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/inter-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
+    U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/inter-latin-ext-500-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
+    U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/inter-latin-ext-600-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
+    U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ------------------------------------------------------------
+   Reset
+   ------------------------------------------------------------ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+/* 减少动效：保留亮度与颜色过渡，去掉位移类动画 */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 150ms !important;
+    animation-iteration-count: 1 !important;
+    animation-timeline: auto !important;
+    transition-property: opacity, color, background-color, border-color, fill, stroke !important;
+    transition-duration: 150ms !important;
+  }
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd,
+ul,
+ol {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ------------------------------------------------------------
+   令牌
+   ------------------------------------------------------------ */
+
+:root {
+  color-scheme: light;
+
+  /* 颜色：文字只用一列灰阶，画布纯白
+     （试过 #e5e7eb 纸灰，阅读长文还是白底舒服） */
+  --canvas: #ffffff;
+  --surface: #ffffff;
+  --black: #000000; /* editorial-black：正文行文 */
+  --ink: #232323; /* charcoal-ink：标题与强调段 */
+  --ink-muted: #a7a7a7; /* soft-graphite：次要文本 */
+  --ink-faded: #c8c8c8; /* faded-pencil：最轻的声音 / 点亮前 */
+  /* 发丝线用透明黑：rgba(0,0,0,.1) 叠在白面上恰好是 #e6e6e6，
+     在任何底色上都仍然可见 */
+  --hairline: rgba(0, 0, 0, 0.1);
+  --hairline-strong: rgba(0, 0, 0, 0.18);
+  --wash: rgba(0, 0, 0, 0.04);
+  /* 站内唯一的色彩，来自豆包标志本身。
+     用途克制：标志、行内链接、重点下划、小节记号，不做大面积填充 */
+  --brand-blue: #1a2ff7;
+  --brand-cyan: #00c8fb;
+  --grad-brand: linear-gradient(var(--brand-cyan), var(--brand-blue));
+  /* 荧光笔：只压在文字下沿，不碰行距 */
+  --marker: color-mix(in srgb, var(--brand-cyan) 20%, transparent);
+
+  /* 字体 */
+  --font: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", ui-monospace, Menlo, Consolas, "PingFang SC", monospace;
+
+  /* 字号：刻意只有三档（14 / 16 / 40） */
+  --t-display: 2.5rem; /* 40px, heading */
+  --lh-display: 1.5;
+  --t-body: 1rem; /* 16px, body-relaxed */
+  --lh-body: 1.8;
+  --t-caption: 0.875rem; /* 14px, caption */
+  --lh-caption: 1.43;
+
+  --w-regular: 400;
+  --w-medium: 500;
+  --w-semibold: 600;
+
+  /* 间距：4px 基准，元素间隙 10px，容器内衬 32px，分段 80px */
+  --s-4: 4px;
+  --s-8: 8px;
+  --s-10: 10px;
+  --s-12: 12px;
+  --s-16: 16px;
+  --s-24: 24px;
+  --s-32: 32px;
+  --s-40: 40px;
+  --s-64: 64px;
+  --s-section: 80px;
+  --card-pad: 32px;
+
+  /* 布局：856px 容器，中文长文的舒适行宽 */
+  --container: 856px;
+  --pad-x: 24px;
+  /* 正文与图片同宽：窄列在 808px 容器里会把明明一行能放下的句子
+     折成两行，读起来反而碎。行长靠 1.8 行高与两端对齐撑住 */
+  --measure: none;
+  --top-cover: 200px; /* 封面首块距顶 */
+  --top-page: 160px;
+  --radius: 16px; /* cards */
+  --radius-full: 9999px; /* buttons & badges */
+
+  /* 唯一的阴影令牌：五层 6% 叠加，弱到只像纸的纹理。
+     内容一律不用，只给悬浮的回流条与灯箱。 */
+  --shadow-subtle: rgba(0, 0, 0, 0.06) 0px 1px 1px -0.5px,
+    rgba(0, 0, 0, 0.06) 0px 3px 3px -1.5px, rgba(0, 0, 0, 0.06) 0px 6px 6px -3px,
+    rgba(0, 0, 0, 0.06) 0px 12px 12px -6px, rgba(0, 0, 0, 0.06) 0px 24px 24px -12px;
+
+  /* 缓动与时长 */
+  --ease: ease;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --dur-press: 140ms;
+  --dur-ui: 200ms;
+  --dur-panel: 260ms;
+}
+
+/* ------------------------------------------------------------
+   页面底座
+   ------------------------------------------------------------ */
+
+body {
+  min-height: 100vh;
+  background: var(--canvas);
+  color: var(--black);
+  font-family: var(--font);
+  font-size: var(--t-body);
+  font-weight: var(--w-regular);
+  line-height: var(--lh-body);
+  font-feature-settings: "kern" 1, "liga" 1, "cv11" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-wrap: break-word;
+}
+
+body.is-locked {
+  overflow: hidden;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--brand-blue) 12%, transparent);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 1.5px solid var(--black);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.skip-link {
+  position: fixed;
+  top: 10px;
+  left: 24px;
+  z-index: 200;
+  transform: translateY(-180%);
+  padding: var(--s-10) var(--s-16);
+  border-radius: var(--radius-full);
+  background: var(--black);
+  color: var(--surface);
+  font-size: var(--t-caption);
+  font-weight: var(--w-medium);
+  transition: transform var(--dur-ui) var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* ------------------------------------------------------------
+   排版基元
+   ------------------------------------------------------------ */
+
+/* 40px 展示级文本：标题与引导段共用同一档。
+   balance 让多行长度均衡，避免最后一行只挂两个字；
+   auto-phrase 在支持的浏览器里按词组断行（不支持则忽略） */
+.display {
+  font-size: clamp(1.75rem, 4.4vw, var(--t-display));
+  font-weight: var(--w-medium);
+  line-height: var(--lh-display);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-wrap: balance;
+  word-break: auto-phrase;
+}
+
+/* 同一段里退一级亮度，用来承接次要句子 */
+.display .faded {
+  color: var(--ink-faded);
+}
+
+.display .muted {
+  color: var(--ink-muted);
+}
+
+/* 16px 次要文本 */
+.body-text {
+  font-size: var(--t-body);
+  font-weight: var(--w-medium);
+  line-height: var(--lh-body);
+  color: var(--ink-muted);
+}
+
+/* 14px 元信息 */
+.caption {
+  font-size: var(--t-caption);
+  font-weight: var(--w-medium);
+  line-height: var(--lh-caption);
+  color: var(--ink-muted);
+}
+
+/* 唯一的色彩来自产品自己的标志：把豆包 logo 直接放进句子里当句号。
+   刻意比字号大一圈（1.6em，跟着字号缩放而不是固定像素），
+   让这颗彩色标记成为整句的视觉锚点。 */
+.mark {
+  display: inline-block;
+  width: 1.6em;
+  height: 1.6em;
+  margin: 0 0.06em;
+  vertical-align: -0.42em;
+}
+
+/* ------------------------------------------------------------
+   组件：胶囊按钮、描边胶囊、文字链接
+   ------------------------------------------------------------ */
+
+/* 唯一的深色实心元素，每页只用一次，常内嵌在句子中间。
+   令牌：填充 #000，文字 #fff，Inter 14px/500，内衬 10px 16px，无边框无阴影 */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-8);
+  padding: var(--s-10) var(--s-16);
+  border-radius: var(--radius-full);
+  background: var(--black);
+  color: var(--surface);
+  font-size: var(--t-caption);
+  font-weight: var(--w-medium);
+  line-height: 1.43;
+  white-space: nowrap;
+  transition: opacity var(--dur-ui) var(--ease), transform var(--dur-press) var(--ease-out);
+}
+
+/* 全站胶囊按钮的统一节奏：实心 hover 降透明度、描边 hover 加深边框，
+   active 一律 scale(0.97)（chip/bcbtn 同此约定） */
+.pill:hover {
+  opacity: 0.88;
+}
+
+.pill:active {
+  transform: scale(0.97);
+}
+
+/* 行内胶囊：黑胶囊直接嵌在句子中间当标点用。
+   垂直位置对齐 40px 汉字的视觉中线（字面在基线上方约 0.36em 处居中） */
+.pill--inline {
+  vertical-align: 0.34em;
+  margin: 0 0.1em;
+}
+
+/* 幽灵胶囊：次级动作，白底描边 */
+.pill--ghost {
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  transition: border-color var(--dur-ui) var(--ease);
+}
+
+.pill--ghost:hover {
+  opacity: 1;
+  border-color: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.025);
+}
+
+.pill--ghost:active {
+  transform: scale(0.97);
+}
+
+/* 展示级句子里的数字：表格数字 + 半粗，轻微加重 */
+.numem {
+  font-weight: var(--w-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 状态徽标：白底画布上用描边胶囊（实站的做法），发丝线成形 */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-8);
+  padding: var(--s-8) var(--s-16);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-full);
+  background: var(--canvas);
+  font-size: var(--t-caption);
+  font-weight: var(--w-medium);
+  line-height: 1.43;
+  color: var(--black);
+  transition: border-color var(--dur-ui) var(--ease), transform var(--dur-press) var(--ease-out);
+}
+
+.chip:hover {
+  border-color: var(--hairline-strong);
+}
+
+.chip:active {
+  transform: scale(0.97);
+}
+
+.chip__sep {
+  color: var(--ink-faded);
+}
+
+.chip__quiet {
+  color: var(--ink-muted);
+}
+
+/* 文字链接：默认最轻，悬停变黑，像脚注而不是按钮 */
+.link {
+  color: var(--ink-muted);
+  transition: color var(--dur-ui) var(--ease);
+}
+
+.link:hover {
+  color: var(--black);
+}
+
+/* 文末的「分享本篇」是个按钮，长得和旁边的文字链接一样 */
+button.link {
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* 40px 文字链接：展示级字号里的可点击句子（文末导航用） */
+.link-display {
+  color: var(--ink-muted);
+  transition: color var(--dur-ui) var(--ease);
+}
+
+.link-display:hover {
+  color: var(--black);
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.3em;
+  padding: 0 0.34em;
+  border-radius: 4px;
+  background: var(--wash);
+  color: var(--ink-muted);
+  font-family: var(--font);
+  font-size: 0.8em;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------
+   滚动条
+   ------------------------------------------------------------ */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: var(--radius-full);
+  background-clip: content-box;
+  background-color: var(--hairline);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--hairline-strong);
+}
+
+/* ------------------------------------------------------------
+   动效基元
+   ------------------------------------------------------------ */
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 签名交互：文字随滚动逐字点亮，由 #c8c8c8 变到 #232323。
+   每个字是一个带颜色过渡的 span，由 app.js 在封面段落上切出 .rv 逐字点亮。
+   只用在封面这类低频页面；正文页不做，避免每天看几十次的东西也在动。 */
+/* 词组单元：由 app.js 用 Intl.Segmenter 切出，词内不折行 */
+.pw {
+  white-space: nowrap;
+}
+
+.rv {
+  color: var(--ink-faded);
+  transition: color 240ms var(--ease);
+}
+
+.rv.lit {
+  color: var(--ink);
+}
+
+/* 蓝色变体：封面第二句点亮成品牌蓝，是逐字动效里唯一的彩色时刻 */
+.reveal--blue .rv.lit {
+  color: var(--brand-blue);
+}
+
+.is-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

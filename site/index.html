@@ -1,109 +1,115 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#c0e3f9" />
-    <meta name="description" content="豆包工作蓝皮书：从一个真实问题进入，完成任务，再把方法留下来。" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>豆包工作蓝皮书</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <script>
-      (() => {
-        try {
-          const saved = localStorage.getItem("doubao-guide-theme");
-          document.documentElement.dataset.theme = saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-        } catch {
-          document.documentElement.dataset.theme = "light";
-        }
-      })();
-    </script>
-    <link rel="stylesheet" href="/styles.css?v=20260901-14" />
-    <script src="/app.js?v=20260901-14" defer></script>
+    <meta
+      name="description"
+      content="一本面向豆包工作的系统化中文实践蓝皮书：从下载安装到完成第一个可验收任务，并覆盖连接器、Skill、API、定时任务与多 Agent 工作小队，附真实场景任务。"
+    />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="豆包工作蓝皮书" />
+    <meta
+      property="og:description"
+      content="一本面向豆包工作的系统化中文实践蓝皮书：49 篇真实任务，覆盖连接器、Skill、API、定时任务与多 Agent 工作小队。"
+    />
+    <meta property="og:image" content="assets/og-cover.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="豆包工作蓝皮书" />
+    <meta name="twitter:image" content="assets/og-cover.png" />
+    <link rel="icon" href="assets/brand/doubao-mark-32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="assets/brand/doubao-mark-180.png" sizes="180x180" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/brand/doubao-mark-180.png" />
+    <link rel="preload" href="fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/inter-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/article.css" />
   </head>
   <body>
-    <a class="skip-link" href="#main-content">跳到正文</a>
-    <div class="reading-progress" aria-hidden="true"><span></span></div>
+    <a class="skip-link" href="#content">跳到正文</a>
 
-    <header class="topbar">
-      <a class="brand" href="#/" aria-label="DoubaoWork Guide 首页">
-        <span class="brand-type"><b>DoubaoWork Guide</b><small>DOUBAO WORK FIELD MANUAL</small></span>
-      </a>
-      <nav class="primary-nav" id="primary-navigation" aria-label="主导航">
-        <a href="#/" data-nav="home">首页</a>
-        <a href="#/bluebook" data-nav="start">开始阅读</a>
-        <a href="#/reading-guide" data-nav="guide">阅读指南</a>
-        <div class="community-nav">
-          <button class="community-trigger" type="button" aria-expanded="false" aria-controls="community-popover">
-            交流群
-            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5"/></svg>
-          </button>
-          <section class="community-popover" id="community-popover" aria-label="豆包工作交流群" hidden>
-            <button class="community-close" type="button" aria-label="关闭交流群二维码">×</button>
-            <div class="community-qr-placeholder" role="img" aria-label="豆包工作交流群二维码待配置">
-              <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M7 7h18v18H7zM13 13h6v6h-6zM39 7h18v18H39zM45 13h6v6h-6zM7 39h18v18H7zM13 45h6v6h-6zM35 35h8v8h-8zM47 35h10v8H47zM35 47h8v10h-8zM47 49h4v4h-4zM55 47h2v10h-2z"/></svg>
-              <strong>二维码待配置</strong>
-              <span>请提供豆包工作交流群二维码</span>
-            </div>
-            <div class="community-caption"><span>WECHAT GROUP</span><strong>微信扫码加入交流群</strong></div>
-          </section>
-        </div>
-        <a class="mobile-github-nav" href="https://github.com/AlephAITech/DoubaoWorkGuide" target="_blank" rel="noreferrer" aria-label="打开 GitHub 仓库">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.4 4 5 5 0 0 0 19.3.5S18.2.1 15 1.8a13.4 13.4 0 0 0-7 0C4.8.1 3.7.5 3.7.5A5 5 0 0 0 3.6 4a5.4 5.4 0 0 0-1.4 3.5c0 5.4 3.5 6.6 6.8 7A4.8 4.8 0 0 0 8 18v4M8 19c-3 .9-3-1.5-4-2"/></svg>
-          <span>GitHub 仓库</span>
+    <header class="masthead">
+      <div class="masthead__inner">
+        <a class="wordmark" href="#/" aria-label="豆包工作蓝皮书 · 回到封面">
+          <img
+            class="wordmark__mark"
+            src="assets/brand/doubao-mark-64.png"
+            srcset="assets/brand/doubao-mark-64.png 1x, assets/brand/doubao-mark-180.png 2x"
+            width="22"
+            height="22"
+            alt=""
+            aria-hidden="true"
+          />
+          <span class="wordmark__name">豆包工作蓝皮书</span>
         </a>
-      </nav>
-      <div class="header-actions">
-        <button class="icon-button search-trigger" type="button" aria-label="搜索指南" title="搜索指南（⌘K）">
-          <span>搜索指南</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+      </div>
+      <div class="masthead__chips">
+        <button class="chip" id="btn-search" type="button" aria-label="全文搜索">
+          <span>搜索</span>
+          <span class="chip__quiet chip__kbd" aria-hidden="true">⌘K</span>
         </button>
-        <span class="header-rule" aria-hidden="true"></span>
-        <button class="theme-toggle" type="button" aria-label="切换到深色模式" aria-pressed="false" title="切换明暗模式">
-          <span class="theme-track" aria-hidden="true">
-            <svg class="theme-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/></svg>
-            <svg class="theme-moon" viewBox="0 0 24 24"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4 8.5 8.5 0 1 0 20 15.2Z"/></svg>
-          </span>
-        </button>
-        <a class="github-link icon-button" href="https://github.com/AlephAITech/DoubaoWorkGuide" target="_blank" rel="noreferrer" aria-label="打开 GitHub 仓库" title="GitHub">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3.3-.4 6.8-1.6 6.8-7A5.4 5.4 0 0 0 19.4 4 5 5 0 0 0 19.3.5S18.2.1 15 1.8a13.4 13.4 0 0 0-7 0C4.8.1 3.7.5 3.7.5A5 5 0 0 0 3.6 4a5.4 5.4 0 0 0-1.4 3.5c0 5.4 3.5 6.6 6.8 7A4.8 4.8 0 0 0 8 18v4M8 19c-3 .9-3-1.5-4-2"/></svg>
+        <a class="chip" href="#/toc">
+          <span>目录</span>
+          <span class="chip__sep" aria-hidden="true">·</span>
+          <span class="chip__quiet" id="chip-count">49 篇</span>
         </a>
-        <span class="header-rule utility-rule" aria-hidden="true"></span>
-        <button class="icon-button nav-toggle" type="button" aria-label="打开主导航" aria-controls="primary-navigation" aria-expanded="false">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
-        <button class="icon-button menu-toggle" type="button" aria-label="打开章节目录" aria-expanded="false">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>
-        </button>
+        <button class="chip" type="button" data-group>交流群</button>
       </div>
     </header>
 
-    <main id="main-content" tabindex="-1">
-      <section class="loading-state" aria-live="polite">
-        <span class="loading-orbit" aria-hidden="true"></span>
-        <p>正在装订指南…</p>
-      </section>
+    <nav class="pinbar" id="pinbar" data-show="false" aria-label="快捷导航">
+      <div class="pinbar__inner">
+        <a class="wordmark" href="#/">
+          <img
+            class="wordmark__mark"
+            src="assets/brand/doubao-mark-64.png"
+            srcset="assets/brand/doubao-mark-64.png 1x, assets/brand/doubao-mark-180.png 2x"
+            width="22"
+            height="22"
+            alt=""
+            aria-hidden="true"
+          />
+          <span class="wordmark__name">豆包工作蓝皮书</span>
+        </a>
+        <span class="pinbar__chips">
+          <button class="chip" type="button" data-search>搜索</button>
+          <a class="chip" href="#/toc">目录</a>
+          <button class="chip" type="button" data-group>交流群</button>
+        </span>
+      </div>
+    </nav>
+
+    <div class="search" id="search" data-open="false" role="dialog" aria-modal="true" aria-label="全文搜索">
+      <div class="search__panel">
+        <div class="search__bar">
+          <input
+            id="search-input"
+            class="search__input"
+            type="search"
+            placeholder="搜标题、正文、提示词…"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <kbd>Esc</kbd>
+        </div>
+        <ol class="search__results" id="search-results"></ol>
+        <p class="search__hint" id="search-hint">↑↓ 选择 · 回车打开 · 共 49 篇可检索</p>
+      </div>
+    </div>
+
+    <main id="content">
+      <div class="state" id="boot">
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="state__text">正在载入内容…</p>
+      </div>
+      <div id="app" hidden></div>
     </main>
 
-    <div class="sidebar-scrim" hidden></div>
-
-    <dialog class="search-dialog" aria-labelledby="search-title">
-      <div class="search-shell">
-        <div class="search-head">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
-          <label class="sr-only" for="search-input" id="search-title">搜索全部章节</label>
-          <input id="search-input" type="search" placeholder="搜索任务、工具或场景…" autocomplete="off" />
-          <button class="search-close" type="button" aria-label="关闭搜索">ESC</button>
-        </div>
-        <div class="search-hint"><span>全文搜索</span><span>↑↓ 选择 · Enter 打开</span></div>
-        <div class="search-results" role="listbox" aria-label="搜索结果"></div>
-      </div>
-    </dialog>
-
-    <dialog class="image-dialog" aria-label="查看大图">
-      <button class="image-close" type="button" aria-label="关闭大图">×</button>
-      <figure><img alt="" /><figcaption></figcaption></figure>
-    </dialog>
-
-    <noscript>这个网站需要启用 JavaScript 才能加载指南内容。</noscript>
+    <script src="js/vendor/qrcode.js"></script>
+    <script type="module" src="js/app.js"></script>
   </body>
 </html>

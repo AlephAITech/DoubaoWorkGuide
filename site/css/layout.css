@@ -1,0 +1,1883 @@
+/* ============================================================
+   layout.css — 页眉、单列骨架、封面、目录页、页脚
+
+   结构刻意极简：页眉的字标与右上胶囊都是绝对定位（会随页面
+   滚走），正文是一条居中容器里的左对齐单列，段与段之间靠大留白，
+   没有多列、没有分隔卡片。
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   页眉：透明细条，无底色、无边框、无阴影，随页面滚走
+   ------------------------------------------------------------ */
+
+.masthead {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.masthead__inner {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--pad-x);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-8);
+}
+
+/* 字标图形：真实的豆包标志。环形轮廓在小尺寸下比实心方块弱，
+   所以取 22px 而不是 18px，视觉重量才和字重 600 的字标对得上。 */
+.wordmark__mark {
+  width: 22px;
+  height: 22px;
+  transition: transform var(--dur-ui) var(--ease-out);
+}
+
+.wordmark:hover .wordmark__mark {
+  transform: rotate(-8deg);
+}
+
+.wordmark__name {
+  font-size: var(--t-body);
+  font-weight: var(--w-semibold);
+  line-height: 1.5;
+  letter-spacing: -0.006em;
+  color: var(--black);
+}
+
+.masthead__chips {
+  position: absolute;
+  top: 0;
+  right: var(--pad-x);
+  display: flex;
+  gap: var(--s-8);
+}
+
+.chip__kbd {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 720px) {
+  .masthead {
+    top: 20px;
+  }
+  .masthead__chips .chip {
+    padding: var(--s-4) var(--s-12);
+  }
+  .chip__kbd {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------
+   回流条：页面顶部的页眉是绝对定位、会滚走，
+   读到深处想回目录就得靠它——向上滚动时从顶部滑入，向下滚动收起。
+   ------------------------------------------------------------ */
+
+.pinbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 80;
+  transform: translateY(-100%);
+  visibility: hidden;
+  background: color-mix(in srgb, var(--canvas) 92%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-subtle);
+  transition: transform var(--dur-panel) var(--ease-out), visibility 0s var(--dur-panel);
+}
+
+.pinbar[data-show="true"] {
+  transform: none;
+  visibility: visible;
+  transition: transform var(--dur-panel) var(--ease-out);
+}
+
+.pinbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-16);
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: var(--s-12) var(--pad-x);
+}
+
+.pinbar__chips {
+  display: flex;
+  gap: var(--s-8);
+}
+
+/* ------------------------------------------------------------
+   全文搜索：⌘K 呼出的浮层，白面板 + 发丝线 + 唯一的那枚阴影
+   ------------------------------------------------------------ */
+
+.search {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  padding: 12vh var(--pad-x) var(--s-40);
+  background: color-mix(in srgb, var(--canvas) 78%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-ui) var(--ease);
+}
+
+.search[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.search__panel {
+  max-width: 620px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-subtle);
+  overflow: hidden;
+  /* 从 0.98 进入，与灯箱一致 */
+  transform: scale(0.98);
+  transition: transform var(--dur-panel) var(--ease-out);
+}
+
+.search[data-open="true"] .search__panel {
+  transform: none;
+}
+
+.search__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-12);
+  padding: var(--s-16) var(--s-24);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.search__input {
+  flex: 1;
+  border: 0;
+  outline: none;
+  background: none;
+  font-size: var(--t-body);
+  line-height: 1.5;
+  color: var(--black);
+}
+
+.search__input::placeholder {
+  color: var(--ink-faded);
+}
+
+.search__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search__bar kbd {
+  padding: 2px var(--s-8);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--ink-faded);
+}
+
+.search__results {
+  list-style: none;
+  max-height: min(52vh, 480px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.search__item {
+  display: block;
+  padding: var(--s-12) var(--s-24);
+  cursor: pointer;
+}
+
+.search__item[aria-selected="true"] {
+  background: var(--wash);
+}
+
+.search__item-title {
+  font-size: var(--t-body);
+  font-weight: var(--w-medium);
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.search__item-part {
+  margin-left: var(--s-8);
+  font-size: var(--t-caption);
+  color: var(--ink-faded);
+}
+
+.search__item-snippet {
+  margin-top: 2px;
+  font-size: var(--t-caption);
+  line-height: 1.6;
+  color: var(--ink-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.search__item-snippet mark,
+.search__item-title mark {
+  background: var(--marker);
+  color: inherit;
+  border-radius: 2px;
+}
+
+.search__hint {
+  padding: var(--s-10) var(--s-24);
+  border-top: 1px solid var(--hairline);
+  font-size: var(--t-caption);
+  color: var(--ink-faded);
+}
+
+/* ------------------------------------------------------------
+   书封：首页（#/）是满屏品牌蓝的独立「蓝皮书封面」，
+   「开始阅读」跳到内页封面（#/intro），不与白纸内页同屏。
+   用工程蓝图纸的语言：满屏蓝 + 淡白网格 + 白描边元素，
+   形状沿用站内的胶囊语言，不引入新的圆角与彩色
+   ------------------------------------------------------------ */
+
+body.is-home .masthead {
+  display: none;
+}
+
+/* 蓝底区域的键盘焦点：黑色环看不清，换白色 */
+.bookcover :is(a, button):focus-visible,
+.lp__cta :is(a, button):focus-visible,
+.lp__foot :is(a, button):focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+/* 3D 舞台：封面以左缘为铰链翻开时需要透视深度 */
+body.is-home .view {
+  perspective: 1500px;
+}
+
+.bookcover {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  padding: 28px var(--pad-x) 36px;
+  overflow: hidden; /* 视差网格出血 60px，裁掉 */
+  background-color: var(--brand-blue);
+  color: #fff;
+  transform-origin: left center; /* 书脊在左 */
+  backface-visibility: hidden;
+}
+
+/* 制图纸网格：独立图层，入场铺开 + 指针视差（transform 由 JS 直接写） */
+.bookcover__grid {
+  position: absolute;
+  inset: -60px;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 44px 44px;
+  animation: bc-fade 1100ms var(--ease-out) backwards;
+  pointer-events: none;
+}
+
+/* 台灯光斑：跟随指针的柔和白光，照亮局部网格；位置由 JS 惯性更新 */
+.bookcover__lamp {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 640px;
+  height: 640px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0) 62%);
+  opacity: 0;
+  transition: opacity 600ms var(--ease);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bookcover:hover .bookcover__lamp {
+    opacity: 1;
+  }
+}
+
+/* 场景词注记：桌上的事散落在图纸上，铅笔稿般的淡白小字，
+   台灯扫过时按距离点亮（color 由 JS 每帧写入） */
+.bookcover__notes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bc-note {
+  position: absolute;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.15);
+  animation: bc-fade 600ms var(--ease-out) both;
+  animation-delay: calc(950ms + var(--i) * 80ms);
+}
+
+.bc-note::before {
+  content: "+";
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+/* 书脊：左缘深一档的竖条 + 竖排书名，翻页铰链就装在这里 */
+.bookcover__spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  background: rgba(0, 0, 24, 0.22);
+  border-right: 1px solid rgba(255, 255, 255, 0.16);
+  animation: bc-fade 900ms var(--ease-out) 150ms backwards;
+}
+
+.bookcover__spine span {
+  writing-mode: vertical-rl;
+  font-size: 11px;
+  font-weight: var(--w-medium);
+  letter-spacing: 0.3em;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.bookcover__bar,
+.bookcover__center,
+.bookcover__foot {
+  position: relative; /* 压在网格上 */
+}
+
+/* 制图纸注册标记：四角的「+」，最后淡入 */
+.bookcover__reg {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  animation: bc-fade 700ms var(--ease-out) 900ms backwards;
+}
+
+.bookcover__reg::before,
+.bookcover__reg::after {
+  content: "";
+  position: absolute;
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.bookcover__reg::before {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+}
+
+.bookcover__reg::after {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+}
+
+.bookcover__reg--tl {
+  top: 96px;
+  left: clamp(24px, 8vw, 120px);
+}
+.bookcover__reg--tr {
+  top: 96px;
+  right: clamp(24px, 8vw, 120px);
+}
+.bookcover__reg--bl {
+  bottom: 88px;
+  left: clamp(24px, 8vw, 120px);
+}
+.bookcover__reg--br {
+  bottom: 88px;
+  right: clamp(24px, 8vw, 120px);
+}
+
+.bookcover__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-16);
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 图签式英文站名：大写 + 宽字距，和封面上其他注记同一套语言 */
+.bookcover__brand {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: var(--w-semibold);
+  letter-spacing: 0.22em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.bookcover__nav .chip {
+  white-space: nowrap;
+}
+
+.bookcover__nav {
+  display: flex;
+  gap: var(--s-8);
+}
+
+.chip--ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.chip--ghost:hover {
+  border-color: rgba(255, 255, 255, 0.78);
+}
+
+.bookcover__center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-64) 0;
+  text-align: center;
+}
+
+.bookcover__kicker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-16);
+  font-size: var(--t-caption);
+  font-weight: var(--w-medium);
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.bookcover__kicker-text {
+  letter-spacing: 0.32em;
+  text-indent: 0.32em; /* 抵消最后一个字的字距，保持视觉居中 */
+}
+
+/* 尺寸标注线：带端刺的细白线，入场时从中心向两侧画出 */
+.bookcover__dimline {
+  position: relative;
+  width: clamp(36px, 7vw, 110px);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.3);
+  animation: bc-dim 700ms var(--ease-out) 880ms backwards;
+}
+
+.bookcover__dimline::before,
+.bookcover__dimline::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  width: 1px;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.bookcover__dimline::before {
+  left: 0;
+}
+
+.bookcover__dimline::after {
+  right: 0;
+}
+
+@keyframes bc-dim {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+}
+
+.bookcover__title {
+  margin-top: var(--s-24);
+  font-size: clamp(3.25rem, 10vw, 6.75rem);
+  font-weight: var(--w-semibold);
+  line-height: 1.08;
+  letter-spacing: 0.015em;
+}
+
+.bookcover__sub {
+  margin-top: var(--s-24);
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.bookcover__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-12);
+  margin-top: var(--s-40);
+}
+
+.bcbtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 13px 30px;
+  border-radius: var(--radius-full);
+  font-size: 15px;
+  font-weight: var(--w-medium);
+  line-height: 1.4;
+  transition: opacity var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease),
+    background-color var(--dur-ui) var(--ease), transform var(--dur-press) var(--ease-out);
+}
+
+.bcbtn:active {
+  transform: scale(0.97);
+}
+
+/* 蓝底上唯一的实心元素，对应内页唯一的黑胶囊 */
+.bcbtn--solid {
+  background: #fff;
+  color: var(--brand-blue);
+}
+
+.bcbtn--solid:hover {
+  opacity: 0.88;
+}
+
+.bcbtn--ghost {
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  color: #fff;
+}
+
+.bcbtn--ghost:hover {
+  border-color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.bookcover__resume {
+  margin-top: var(--s-24);
+  font-size: var(--t-caption);
+  color: rgba(255, 255, 255, 0.72);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+  transition: color var(--dur-ui) var(--ease);
+}
+
+.bookcover__resume:hover {
+  color: #fff;
+}
+
+/* 图例栏：49 篇标题匀速滚动，像图纸边缘的图例；hover 暂停细读 */
+.bookcover__ticker {
+  position: relative;
+  overflow: hidden;
+  margin: 0 calc(-1 * var(--pad-x)) var(--s-24);
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  animation: bc-fade 700ms var(--ease-out) 950ms backwards;
+}
+
+.bookcover__ticker-track {
+  display: flex;
+  width: max-content;
+  animation: bc-ticker 120s linear infinite;
+}
+
+.bookcover__ticker:hover .bookcover__ticker-track {
+  animation-play-state: paused;
+}
+
+.bookcover__ticker-track > span {
+  white-space: nowrap;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+/* 跑马灯里的每条篇目都是入口：hover 暂停轨道、当前条点亮 */
+.bookcover__ticker-link {
+  color: inherit;
+  transition: color var(--dur-ui) var(--ease);
+}
+
+.bookcover__ticker-link:hover {
+  color: #fff;
+}
+
+/* 轨道是两份相同内容，位移自身一半即回到起点，实现无缝循环 */
+@keyframes bc-ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.bookcover__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-8);
+}
+
+.bookcover__hint {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.bookcover__stats {
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.56);
+  font-variant-numeric: tabular-nums; /* 数字滚动时宽度不抖 */
+}
+
+/* ---- 进场编排：网格铺开 → 品牌行 → 标题逐字升起 → 副题/按钮/统计 ----
+   只动 transform 与 opacity；这是低频入口页，delight 预算花在这里 */
+
+@keyframes bc-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes bc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+/* 标题逐字：每个字装在 overflow hidden 的遮罩里，从下方 112% 升起。
+   遮罩比行高略高一点，避免 CJK 字形上下被裁 */
+.bc-m {
+  display: inline-block;
+  overflow: hidden;
+  padding: 0.08em 0;
+  margin: -0.08em 0;
+  vertical-align: top;
+}
+
+.bc-ch {
+  display: inline-block;
+  animation: bc-ch-rise 760ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
+}
+
+@keyframes bc-ch-rise {
+  from {
+    transform: translateY(112%);
+  }
+}
+
+.bookcover__bar {
+  animation: bc-fade 640ms var(--ease-out) backwards;
+}
+
+.bookcover__kicker,
+.bookcover__sub,
+.bookcover__actions,
+.bookcover__resume {
+  animation: bc-rise 560ms var(--ease-out) backwards;
+}
+
+.bookcover__kicker {
+  animation-delay: 80ms;
+}
+.bookcover__sub {
+  animation-delay: 560ms;
+}
+.bookcover__actions {
+  animation-delay: 660ms;
+}
+.bookcover__resume {
+  animation-delay: 740ms;
+}
+.bookcover__foot {
+  animation: bc-fade 700ms var(--ease-out) 820ms backwards;
+}
+
+/* ---- 退场：点「开始阅读」等入口，封面以左缘为轴翻开，露出白纸内页 ----
+   由 JS 加 .bookcover--open，动画结束后再跳转路由 */
+.bookcover--open {
+  animation: bc-open 640ms cubic-bezier(0.77, 0, 0.175, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes bc-open {
+  /* 前 55% 保持实心蓝，翻过一半后才开始透明，避免中段被「洗白」 */
+  55% {
+    opacity: 1;
+  }
+  to {
+    transform: rotateY(-84deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* 减弱而非归零：保留淡入，去掉位移、逐字与 3D 翻页 */
+  .bookcover__grid,
+  .bookcover__reg,
+  .bookcover__bar,
+  .bookcover__spine,
+  .bookcover__kicker,
+  .bookcover__dimline,
+  .bookcover__sub,
+  .bookcover__actions,
+  .bookcover__resume,
+  .bookcover__ticker,
+  .bookcover__foot,
+  .bc-note,
+  .bc-ch {
+    animation: bc-fade 240ms ease backwards;
+    animation-delay: 0ms;
+  }
+  .bookcover__ticker-track {
+    animation: none; /* 图例静止展示开头几篇 */
+  }
+  .bookcover__lamp {
+    display: none;
+  }
+  .bookcover--open {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+@media (min-width: 721px) {
+  /* 给左侧书脊让位，避免品牌行压在竖条上 */
+  .bookcover {
+    padding-left: calc(var(--pad-x) + 48px);
+  }
+  .bookcover__ticker {
+    margin-left: calc(-1 * var(--pad-x) - 48px);
+    padding-left: 48px;
+  }
+}
+
+@media (max-width: 720px) {
+  .bookcover {
+    padding-top: 20px;
+  }
+  .bookcover__grid {
+    background-size: 36px 36px;
+  }
+  .bookcover__reg,
+  .bookcover__spine,
+  .bookcover__dimline,
+  .bookcover__notes {
+    display: none; /* 小屏太挤，留主体 */
+  }
+  .bookcover__title {
+    font-size: 11vw; /* 7 个字一行放下，不折成「蓝皮 / 书」 */
+    white-space: nowrap;
+  }
+  .bookcover__brand {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+  }
+  .bookcover__brand-ext {
+    display: none; /* 小屏只留 DOUBAO WORK，给右侧按钮让位 */
+  }
+}
+
+/* ------------------------------------------------------------
+   书封下的落地版块：浅色制图纸 + 深描边硬阴影卡片。
+   蓝图语言的浅色面：白卡、1px 深线、右下实心投影、蓝色小标签
+   ------------------------------------------------------------ */
+
+.lp {
+  --lp-line: #1e2a52; /* 深藏青：描边与硬阴影 */
+  position: relative;
+  padding: 104px var(--pad-x) 0;
+  background-color: #eef2fa;
+  background-image: linear-gradient(rgba(30, 42, 82, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 42, 82, 0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+  border-top: 1px solid var(--lp-line);
+}
+
+.lp__section {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-bottom: 112px;
+}
+
+/* 版块头：蓝底索引标签 + 右侧「全部」出口 + 大标题一行、右侧一段说明 */
+.lp__index-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-16);
+}
+
+.lp__index {
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--brand-blue);
+  color: #fff;
+  font-size: 11px;
+  font-weight: var(--w-semibold);
+  letter-spacing: 0.14em;
+  font-variant-numeric: tabular-nums;
+}
+
+.lp__more {
+  font-size: 12px;
+  font-weight: var(--w-medium);
+  letter-spacing: 0.08em;
+  color: var(--lp-line);
+  border-bottom: 1px solid transparent;
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease);
+}
+
+.lp__more:hover {
+  color: var(--brand-blue);
+  border-bottom-color: var(--brand-blue);
+}
+
+.lp__head-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-24);
+  margin-top: var(--s-16);
+  padding-bottom: var(--s-16);
+  border-bottom: 2px solid var(--lp-line);
+  margin-bottom: var(--s-40);
+}
+
+.lp__h2 {
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: var(--w-semibold);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--lp-line);
+}
+
+.lp__lede {
+  max-width: 22rem;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink-muted);
+}
+
+/* 卡片网格 */
+.lp__grid {
+  display: grid;
+  gap: 32px;
+}
+
+/* 左缘竖排注记：制图纸边上的图签 */
+.lp__side {
+  position: absolute;
+  top: 128px;
+  left: 20px;
+  writing-mode: vertical-rl;
+  font-size: 10px;
+  font-weight: var(--w-medium);
+  letter-spacing: 0.3em;
+  color: rgba(30, 42, 82, 0.35);
+  user-select: none;
+}
+
+@media (max-width: 1280px) {
+  .lp__side {
+    display: none;
+  }
+}
+
+.lp__grid--tasks {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 860px) {
+  .lp__grid--tasks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.lp__grid--files {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+/* 卡片：白面、深描边、右下硬阴影；悬停向左上抬起、阴影加深。
+   纵向 flex + 脚注 margin-top:auto，同排卡片脚注贴底对齐 */
+.lp__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 28px;
+  background: #fff;
+  border: 1px solid var(--lp-line);
+  border-radius: 3px;
+  box-shadow: 6px 6px 0 var(--lp-line);
+  transition: transform var(--dur-ui) var(--ease-out), box-shadow var(--dur-ui) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp__card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 var(--lp-line);
+  }
+}
+
+.lp__card:active {
+  transform: translate(2px, 2px);
+  box-shadow: 3px 3px 0 var(--lp-line);
+}
+
+/* 分类标签：与版块头 PICKS/INDEX 标签同一套语言，描边小签 */
+.lp__tag {
+  align-self: flex-start;
+  padding: 3px 8px;
+  border: 1px solid var(--lp-line);
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: var(--w-medium);
+  letter-spacing: 0.12em;
+  color: var(--lp-line);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 编号图章：卡片右上角的小方框序号 */
+.lp__stamp {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--lp-line);
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: var(--w-semibold);
+  color: var(--lp-line);
+  font-variant-numeric: tabular-nums;
+  transition: background var(--dur-ui) var(--ease), color var(--dur-ui) var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp__card:hover .lp__stamp {
+    background: var(--lp-line);
+    color: #fff;
+  }
+}
+
+/* 任务卡 */
+.lp__task-title {
+  margin-top: var(--s-12);
+  padding-right: 40px;
+  font-size: 1.1875rem;
+  font-weight: var(--w-semibold);
+  line-height: 1.4;
+  color: var(--lp-line);
+  transition: color var(--dur-ui) var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp__card:hover .lp__task-title {
+    color: var(--brand-blue);
+  }
+}
+
+.lp__task-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: var(--s-8);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink-muted);
+}
+
+.lp__task-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto; /* 贴底，同排卡片脚注对齐 */
+  padding-top: var(--s-16);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--ink-faded);
+  font-variant-numeric: tabular-nums;
+}
+
+.lp__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--lp-line);
+  border-radius: 2px;
+  font-size: 15px;
+  color: var(--lp-line);
+  transition: background var(--dur-ui) var(--ease), color var(--dur-ui) var(--ease),
+    transform var(--dur-ui) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp__card:hover .lp__arrow {
+    background: var(--brand-blue);
+    border-color: var(--brand-blue);
+    color: #fff;
+    transform: translateX(3px);
+  }
+}
+
+/* 便签胶带：卡片顶边斜贴的一小条（右移给编号图章让位） */
+.lp__tape {
+  position: absolute;
+  top: -9px;
+  right: 88px;
+  width: 38px;
+  height: 15px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1.5px solid var(--lp-line);
+  transform: rotate(18deg);
+}
+
+.lp__task:nth-child(even) .lp__tape {
+  transform: rotate(-14deg);
+  border-color: var(--brand-blue);
+}
+
+/* 档案卡：FILE 标签 + 粗规线 + 左缘蓝色索引舌片 + 右下幽灵大编号 */
+.lp__file {
+  overflow: hidden;
+}
+
+.lp__file::after {
+  content: attr(data-n);
+  position: absolute;
+  right: 10px;
+  bottom: -14px;
+  font-size: 78px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: rgba(30, 42, 82, 0.045);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  transition: color var(--dur-ui) var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lp__file:hover::after {
+    color: rgba(26, 47, 247, 0.12);
+  }
+}
+
+.lp__file::before {
+  content: "";
+  position: absolute;
+  top: 34px;
+  left: -7px;
+  width: 7px;
+  height: 30px;
+  background: var(--brand-blue);
+  border: 1px solid var(--lp-line);
+}
+
+.lp__tag--file {
+  color: var(--lp-line);
+}
+
+.lp__rule {
+  display: block;
+  height: 2px;
+  margin: 10px 0 18px;
+  background: var(--lp-line);
+}
+
+.lp__file-title {
+  font-size: 1.5rem;
+  font-weight: var(--w-semibold);
+  color: var(--lp-line);
+}
+
+.lp__file-desc {
+  margin-top: var(--s-8);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink-muted);
+}
+
+/* 版块之间的斜纹分割带：图纸上的「剖面线」 */
+.lp__hatch {
+  max-width: 1080px;
+  height: 12px;
+  margin: -16px auto 96px;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(30, 42, 82, 0.3) 0,
+    rgba(30, 42, 82, 0.3) 1px,
+    transparent 1px,
+    transparent 6px
+  );
+  border-top: 1px solid rgba(30, 42, 82, 0.35);
+  border-bottom: 1px solid rgba(30, 42, 82, 0.35);
+}
+
+/* 收尾 CTA：回到品牌蓝，首尾同色 */
+.lp__cta {
+  margin: 0 calc(-1 * var(--pad-x));
+  padding: 104px var(--pad-x);
+  background-color: var(--brand-blue);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 44px 44px;
+  text-align: center;
+  color: #fff;
+}
+
+.lp__cta-kicker {
+  margin-bottom: var(--s-16);
+  font-size: 11px;
+  font-weight: var(--w-medium);
+  letter-spacing: 0.24em;
+  color: rgba(255, 255, 255, 0.65);
+  font-variant-numeric: tabular-nums;
+}
+
+.lp__cta-title {
+  font-size: clamp(1.375rem, 3vw, 2rem);
+  font-weight: var(--w-semibold);
+  line-height: 1.4;
+}
+
+.lp__cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-12);
+  margin-top: var(--s-32);
+}
+
+/* 蓝页页脚：深藏青反白，与封面的字距标签同一套语言 */
+.lp__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-12) var(--s-24);
+  margin: 0 calc(-1 * var(--pad-x));
+  padding: 26px var(--pad-x);
+  background: var(--lp-line);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.lp__foot-sig {
+  font-size: 10px;
+  font-weight: var(--w-medium);
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.lp__foot-links {
+  display: flex;
+  align-items: center;
+  gap: var(--s-24);
+  font-size: var(--t-caption);
+  font-weight: var(--w-medium);
+}
+
+.lp__foot-links a {
+  color: rgba(255, 255, 255, 0.72);
+  transition: color var(--dur-ui) var(--ease);
+}
+
+.lp__foot-links a:hover {
+  color: #fff;
+}
+
+.lp__foot-git svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.lp__foot-copy {
+  font-size: var(--t-caption);
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* 友链：页脚里独占一行，宽字距小标 + 淡色链接 */
+.lp__foot-friends {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-8) var(--s-24);
+  margin-top: var(--s-8);
+  padding-top: var(--s-16);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: var(--t-caption);
+  font-weight: var(--w-medium);
+}
+
+.lp__foot-friends-label {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.lp__foot-friends a {
+  color: rgba(255, 255, 255, 0.55);
+  transition: color var(--dur-ui) var(--ease);
+}
+
+.lp__foot-friends a:hover {
+  color: #fff;
+}
+
+/* 滚动进场：进视口后升起；同排卡片按位置错开 */
+@keyframes lp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+.lp--animate :is(.lp__head, .lp__card, .lp__cta-box):not(.lp-in) {
+  opacity: 0;
+}
+
+.lp--animate .lp-in {
+  animation: lp-rise 560ms cubic-bezier(0.23, 1, 0.32, 1) backwards;
+}
+
+.lp--animate .lp__grid > .lp-in:nth-child(2) {
+  animation-delay: 70ms;
+}
+.lp--animate .lp__grid > .lp-in:nth-child(3) {
+  animation-delay: 140ms;
+}
+.lp--animate .lp__grid > .lp-in:nth-child(4) {
+  animation-delay: 210ms;
+}
+
+@media (max-width: 720px) {
+  .lp {
+    padding-top: 72px;
+  }
+  .lp__section {
+    padding-bottom: 80px;
+  }
+  .lp__head-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s-12);
+  }
+  .lp__cta {
+    padding: 72px var(--pad-x);
+  }
+}
+
+/* ------------------------------------------------------------
+   分享卡片弹层：与搜索同一套浮层语言
+   ------------------------------------------------------------ */
+
+.sharebox {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-24);
+  background: color-mix(in srgb, var(--canvas) 78%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-ui) var(--ease);
+}
+
+.sharebox[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sharebox__panel {
+  /* A5 竖版卡片：宽度跟着视口高走，保证整张卡在屏内 */
+  width: min(420px, 100%, calc((100vh - 160px) / 1.414));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-subtle);
+  transform: scale(0.98);
+  transition: transform var(--dur-panel) var(--ease-out);
+}
+
+.sharebox[data-open="true"] .sharebox__panel {
+  transform: none;
+}
+
+.sharebox__img {
+  display: block;
+  width: 100%;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.sharebox__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-12);
+  flex-wrap: wrap;
+  padding: var(--s-16) var(--s-24);
+}
+
+.sharebox__hint {
+  font-size: var(--t-caption);
+  color: var(--ink-faded);
+}
+
+.sharebox__actions {
+  display: flex;
+  gap: var(--s-8);
+}
+
+/* ------------------------------------------------------------
+   交流群弹层：白面板 + 二维码，与分享弹层同一套浮层语言
+   ------------------------------------------------------------ */
+
+.groupbox {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-24);
+  background: color-mix(in srgb, var(--canvas) 78%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-ui) var(--ease);
+}
+
+.groupbox[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.groupbox__panel {
+  width: min(360px, 100%);
+  padding: var(--s-32);
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-subtle);
+  transform: scale(0.98);
+  transition: transform var(--dur-panel) var(--ease-out);
+}
+
+.groupbox[data-open="true"] .groupbox__panel {
+  transform: none;
+}
+
+.groupbox__kicker {
+  font-size: 11px;
+  font-weight: var(--w-medium);
+  letter-spacing: 0.2em;
+  color: var(--ink-faded);
+}
+
+.groupbox__qr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 232px;
+  height: 232px;
+  margin: var(--s-16) auto 0;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.groupbox__qr img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 站内 img 全局是 display:block，会盖掉 [hidden] 的 UA 规则，这里强制 */
+.groupbox [hidden] {
+  display: none !important;
+}
+
+.groupbox__empty {
+  padding: var(--s-16);
+}
+
+.groupbox__empty-title {
+  font-size: var(--t-body);
+  font-weight: var(--w-medium);
+  color: var(--ink-muted);
+}
+
+.groupbox__empty-hint {
+  margin-top: var(--s-8);
+  font-size: var(--t-caption);
+  line-height: 1.7;
+  color: var(--ink-faded);
+}
+
+.groupbox__empty-hint code {
+  font-size: 12px;
+}
+
+.groupbox__title {
+  margin-top: var(--s-16);
+  font-size: var(--t-body);
+  font-weight: var(--w-semibold);
+  color: var(--ink);
+}
+
+.groupbox__hint {
+  margin-top: var(--s-4);
+  font-size: var(--t-caption);
+  color: var(--ink-muted);
+}
+
+.groupbox__close {
+  margin-top: var(--s-16);
+}
+
+/* 「继续阅读」：嵌在封面与目录的统计行里，是站内少数几处品牌蓝 */
+.resume__link {
+  color: var(--brand-blue);
+  transition: color var(--dur-ui) var(--ease);
+}
+
+.resume__link:hover {
+  color: color-mix(in srgb, var(--brand-blue) 78%, var(--black));
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+}
+
+/* ------------------------------------------------------------
+   骨架
+   ------------------------------------------------------------ */
+
+.page {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--pad-x);
+}
+
+.view {
+  animation: fade var(--dur-ui) var(--ease-out) both;
+}
+
+/* ------------------------------------------------------------
+   封面：一篇竖向排下来的短文
+   ------------------------------------------------------------ */
+
+.cover {
+  padding-top: var(--top-cover);
+}
+
+@media (max-width: 720px) {
+  .cover {
+    padding-top: 120px;
+  }
+}
+
+/* 段与段之间只有留白 */
+.essay > * + * {
+  margin-top: var(--s-section);
+}
+
+/* 页首 kicker：这页的名字，紧贴第一句。宽字距与蓝图区的图签同一套语言 */
+.essay__kicker {
+  color: var(--ink-faded);
+  font-weight: var(--w-medium);
+  letter-spacing: 0.24em;
+}
+
+.entries__label {
+  letter-spacing: 0.12em;
+}
+
+.essay__kicker + .display {
+  margin-top: var(--s-24);
+}
+
+.essay .body-text {
+  max-width: 30rem;
+}
+
+/* 导读页的条目列表：发丝线分隔的整行入口，
+   悬停标题变蓝、箭头浮现；读过的部分在行底压一条蓝色进度线 */
+.entries__label {
+  margin-bottom: var(--s-16);
+  color: var(--ink-faded);
+}
+
+.entries {
+  list-style: none;
+  border-top: 1px solid var(--hairline);
+}
+
+.entry {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-16);
+  padding: var(--s-16) 2px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.entry__main {
+  min-width: 0;
+}
+
+.entry__title {
+  display: block;
+  font-size: clamp(1.25rem, 2.8vw, 1.75rem);
+  font-weight: var(--w-medium);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  transition: color var(--dur-ui) var(--ease);
+}
+
+.entry:hover .entry__title {
+  color: var(--brand-blue);
+}
+
+.entry__hint {
+  display: block;
+  margin-top: var(--s-4, 4px);
+  font-size: var(--t-caption);
+  line-height: var(--lh-caption);
+  color: var(--ink-muted);
+}
+
+.entry__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-12);
+  flex: none;
+  font-size: var(--t-caption);
+  font-weight: var(--w-medium);
+  color: var(--ink-faded);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.entry__read {
+  color: var(--ink-muted);
+}
+
+.entry__arrow {
+  color: var(--brand-blue);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity var(--dur-ui) var(--ease), transform var(--dur-ui) var(--ease-out);
+}
+
+.entry:hover .entry__arrow {
+  opacity: 1;
+  transform: none;
+}
+
+.entry__bar {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--brand-blue);
+  pointer-events: none;
+}
+
+@media (max-width: 620px) {
+  .entry {
+    flex-wrap: wrap;
+    row-gap: var(--s-8);
+  }
+  .entry__arrow {
+    display: none;
+  }
+}
+
+/* 导读页收尾的下一步动作区 */
+.nextsteps__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-12);
+}
+
+/* ------------------------------------------------------------
+   目录页
+   ------------------------------------------------------------ */
+
+.toc {
+  padding-top: var(--top-page);
+}
+
+@media (max-width: 720px) {
+  .toc {
+    padding-top: 110px;
+  }
+}
+
+.toc__part + .toc__part {
+  margin-top: var(--s-section);
+}
+
+/* 部标题是这页的主要声音，用正文色；只有可点的状态变化交给悬停 */
+.toc__part-title {
+  margin-bottom: var(--s-24);
+}
+
+.toc__part-title a {
+  color: var(--ink);
+  transition: color var(--dur-ui) var(--ease);
+}
+
+.toc__part-title a:hover {
+  color: var(--black);
+}
+
+.toc__group {
+  margin-top: var(--s-32);
+  margin-bottom: var(--s-12);
+  font-size: var(--t-body);
+  font-weight: var(--w-medium);
+  line-height: var(--lh-body);
+  color: var(--ink-faded);
+}
+
+.toc__list {
+  list-style: none;
+  max-width: var(--measure);
+}
+
+.toc__row {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+  gap: var(--s-12);
+  align-items: baseline;
+  padding: var(--s-4) 0;
+  transition: color var(--dur-ui) var(--ease);
+}
+
+.toc__row:hover {
+  color: var(--black);
+}
+
+.toc__row-idx {
+  font-size: var(--t-caption);
+  font-weight: var(--w-medium);
+  color: var(--ink-faded);
+  font-variant-numeric: tabular-nums;
+}
+
+.toc__row-title {
+  font-size: var(--t-body);
+  font-weight: var(--w-medium);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+.toc__row:hover .toc__row-title {
+  color: var(--black);
+}
+
+.toc__row-meta {
+  font-size: var(--t-caption);
+  color: var(--ink-faded);
+  white-space: nowrap;
+}
+
+/* 已读只在行尾用两个字标注，不给整行降亮度——
+   否则读过的灰、没读的黑混在一起，列表看起来像坏了 */
+
+/* ------------------------------------------------------------
+   页脚：发丝线收边的一行链接（联系我们 · GitHub · 社区），版权靠右
+   ------------------------------------------------------------ */
+
+.foot {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 160px var(--pad-x) 56px;
+}
+
+.foot--tight {
+  padding-top: 110px;
+}
+
+.foot__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-12) var(--s-24);
+  padding-top: var(--s-24);
+  border-top: 1px solid var(--hairline);
+}
+
+/* 页脚签名：封面图签的回声 */
+.foot__sig {
+  font-size: 10px;
+  font-weight: var(--w-medium);
+  letter-spacing: 0.3em;
+  color: var(--ink-faded);
+}
+
+.foot__links {
+  display: flex;
+  align-items: center;
+  gap: var(--s-24);
+  font-size: var(--t-caption);
+  font-weight: var(--w-medium);
+}
+
+.foot__links a {
+  color: var(--ink-muted);
+  transition: color var(--dur-ui) var(--ease);
+}
+
+.foot__links a:hover {
+  color: var(--black);
+}
+
+.foot__git {
+  display: inline-flex;
+  align-items: center;
+}
+
+.foot__git svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.foot__copy {
+  font-size: var(--t-caption);
+  color: var(--ink-faded);
+}
+
+/* 友链：主行下方一行，宽字距小标 + 淡色链接 */
+.foot__friends {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-8) var(--s-24);
+  margin-top: var(--s-16);
+  font-size: var(--t-caption);
+  font-weight: var(--w-medium);
+}
+
+.foot__friends-label {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--ink-faded);
+}
+
+.foot__friends a {
+  color: var(--ink-muted);
+  transition: color var(--dur-ui) var(--ease);
+}
+
+.foot__friends a:hover {
+  color: var(--black);
+}
+
+/* ------------------------------------------------------------
+   状态页
+   ------------------------------------------------------------ */
+
+.state {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: var(--top-page) var(--pad-x) 200px;
+}
+
+.state__text {
+  max-width: 30rem;
+  margin-top: var(--s-16);
+  font-size: var(--t-body);
+  font-weight: var(--w-medium);
+  line-height: var(--lh-body);
+  color: var(--ink-muted);
+}
+
+.state__code {
+  display: block;
+  max-width: 34rem;
+  margin: var(--s-24) 0;
+  padding: var(--s-16);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: var(--t-caption);
+  line-height: 1.7;
+  color: var(--ink);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.state__actions {
+  margin-top: var(--s-24);
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--hairline);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 触屏设备上不做悬停位移 */
+@media not all and (hover: hover) {
+  .wordmark:hover .wordmark__mark {
+    transform: none;
+  }
+}
