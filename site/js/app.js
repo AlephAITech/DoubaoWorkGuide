@@ -5,13 +5,13 @@
    导航靠页眉右上的胶囊、目录页，以及每篇文末的下一节链接。
    ============================================================ */
 
-import { renderMarkdown, escapeHtml, plainText } from "./markdown.js?v=20260901-2";
+import { renderMarkdown, escapeHtml, plainText } from "./markdown.js?v=20260904-1";
 
 const READ_KEY = "dwg.read";
 const RESUME_KEY = "dwg.resume";
 const RAIL_KEY = "dwg.rail"; /* 左侧章节目录："1" 固定展开，其余（含首次）收起悬浮 */
 const ASSET_VERSION =
-  document.querySelector('meta[name="dwg-assets-version"]')?.content || "20260901-2";
+  document.querySelector('meta[name="dwg-assets-version"]')?.content || "20260904-1";
 const versionedAsset = (path) => `${path}?v=${encodeURIComponent(ASSET_VERSION)}`;
 
 const dom = {
