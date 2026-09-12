@@ -28,8 +28,9 @@ export class AnalyticsStore {
   async session(digest,now=Date.now()) { return this.db.prepare('SELECT csrf,expires_at FROM admin_sessions WHERE digest=? AND expires_at>?').bind(digest,now).first(); }
   async revokeSession(digest) { await this.db.prepare('DELETE FROM admin_sessions WHERE digest=?').bind(digest).run(); }
   async security(kind,detail,time=new Date().toISOString()) { await this.db.prepare('INSERT INTO security_events(occurred_at,kind,detail) VALUES(?,?,?)').bind(time,kind,String(detail).slice(0,300)).run(); }
-  async report({from,to}) {
+  async report({from,to},now=new Date()) {
     const where='day>=? AND day<=?';
+    const ipDetailCutoff=new Date(now.getTime()-7*DAY).toISOString();
     const group=async(column)=>rows(this.db.prepare(`SELECT ${column} AS name,COUNT(*) AS count FROM page_events WHERE ${where} AND quality='valid' GROUP BY ${column} ORDER BY count DESC LIMIT 20`).bind(from,to));
     const [totals,distinct,daily,pages,referrers,countries,devices,ips,security,total]=await Promise.all([
       this.db.prepare(`SELECT COALESCE(SUM(pv),0) AS pv,COALESCE(SUM(valid_pv),0) AS validPv FROM traffic_daily WHERE ${where}`).bind(from,to).first(),
@@ -37,13 +38,13 @@ export class AnalyticsStore {
       rows(this.db.prepare(`SELECT day AS date,COUNT(*) AS pv,SUM(quality='valid') AS validPv,COUNT(DISTINCT CASE WHEN quality='valid' THEN visitor_key END) AS uv,COUNT(DISTINCT CASE WHEN quality='valid' THEN ip_key END) AS ips FROM page_events WHERE ${where} GROUP BY day ORDER BY day`).bind(from,to)),
       rows(this.db.prepare(`SELECT page,COUNT(*) AS pv,COUNT(DISTINCT visitor_key) AS uv FROM page_events WHERE ${where} AND quality='valid' GROUP BY page ORDER BY pv DESC LIMIT 100`).bind(from,to)),
       group('referrer'),group('country'),group('device'),
-      rows(this.db.prepare(`SELECT e.ip_key AS key,COALESCE(i.masked,'已脱敏') AS masked,COUNT(*) AS pv,COUNT(DISTINCT e.visitor_key) AS visitors,MAX(e.occurred_at) AS lastSeen,MIN(e.country) AS country,SUM(e.quality='suspicious') AS suspicious FROM page_events e LEFT JOIN ip_details i ON i.key=e.ip_key WHERE e.day>=? AND e.day<=? GROUP BY e.ip_key ORDER BY pv DESC LIMIT 100`).bind(from,to)),
+      rows(this.db.prepare(`SELECT e.ip_key AS key,COALESCE(i.masked,'已脱敏') AS masked,COUNT(*) AS pv,COUNT(DISTINCT e.visitor_key) AS visitors,MAX(e.occurred_at) AS lastSeen,MIN(e.country) AS country,SUM(e.quality='suspicious') AS suspicious FROM page_events e LEFT JOIN ip_details i ON i.key=e.ip_key WHERE e.day>=? AND e.day<=? AND e.occurred_at>? GROUP BY e.ip_key ORDER BY pv DESC LIMIT 100`).bind(from,to,ipDetailCutoff)),
       rows(this.db.prepare('SELECT occurred_at AS time,kind,detail FROM security_events WHERE occurred_at>=? AND occurred_at<? ORDER BY occurred_at DESC LIMIT 100').bind(dayStart(from).toISOString(),dayStart(shiftDay(to,1)).toISOString())),
       this.db.prepare('SELECT pv,started_at FROM traffic_total WHERE id=1').first(),
     ]);
     const days=new Map(daily.map(row=>[row.date,row]));
     const complete=[]; for(let date=from;date<=to;date=shiftDay(date,1)) complete.push(days.get(date)||{date,pv:0,validPv:0,uv:0,ips:0});
-    return {range:{from,to},summary:{...totals,...distinct,suspicious:totals.pv-totals.validPv,totalPv:total?.pv||0},daily:complete,pages,referrers,countries,devices,ips,security,collectionStartedAt:total?.started_at||null};
+    return {range:{from,to},summary:{...totals,...distinct,suspicious:totals.pv-totals.validPv,totalPv:total?.pv||0},daily:complete,pages,referrers,countries,devices,ips,security,ipDetailCutoff,collectionStartedAt:total?.started_at||null};
   }
   async history() { return rows(this.db.prepare('SELECT day AS date,pv,valid_pv AS validPv FROM traffic_daily ORDER BY day')); }
   async cleanup(now=new Date()) {

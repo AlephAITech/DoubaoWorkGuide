@@ -23,3 +23,14 @@ test('once request quota and rejection sample are recorded, repeated rejection c
   for(let n=0;n<100;n++)assert.equal((await g.run({action:'request'})).allowed,false);
   assert.equal(g.writes(),saturated);
 });
+test('daily accepted-event allowance resets at midnight in Asia/Shanghai',async()=>{
+  const original=Date.now;
+  try {
+    const g=gate({MAX_EVENTS_PER_DAY:'2',MAX_EVENTS_PER_MINUTE:'1000'});
+    Date.now=()=>Date.parse('2026-09-11T15:59:59.000Z');
+    for(let n=0;n<2;n++)assert.equal((await g.run({action:'event',ip:'i'+n,visitor:'v'+n,proof:true})).allowed,true);
+    assert.equal((await g.run({action:'event',ip:'full',visitor:'full',proof:true})).allowed,false);
+    Date.now=()=>Date.parse('2026-09-11T16:00:00.000Z');
+    assert.equal((await g.run({action:'event',ip:'next',visitor:'next',proof:true})).allowed,true);
+  } finally { Date.now=original; }
+});

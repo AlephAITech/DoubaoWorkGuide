@@ -5,7 +5,7 @@ import siteIndex from '../site/content/site-index.json';
 export { TrafficGate } from './guard.mjs';
 
 const pages=new Map([['/','首页'],['/intro','导读'],['/toc','目录'],...siteIndex.documents.map(d=>[`/p/${d.nodeToken.replace(/^doc-/,'')}`,d.title])]);
-const ADMIN_COOKIE='__Host-dwg_admin',VISITOR_COOKIE='__Host-dwg_visitor';
+const ADMIN_COOKIE='__Host-dwg_admin',VISITOR_COOKIE='__Host-dwg_visitor',OPTOUT_COOKIE='__Host-dwg_analytics_optout';
 const CSP="default-src 'none'; script-src 'self' https://challenges.cloudflare.com; style-src 'self'; img-src 'self' data:; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; font-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
 const cookie=(name,value,maxAge,sameSite='Strict')=>`${name}=${value}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=${sameSite}`;
 function cookies(request) { return Object.fromEntries((request.headers.get('Cookie')||'').split(';').map(p=>p.trim().split(/=(.*)/s).slice(0,2)).filter(p=>p.length===2)); }
@@ -67,7 +67,7 @@ async function rateResponse(store,result,env) {
 }
 async function handler(request,env) {
   const url=new URL(request.url),path=url.pathname;
-  if(path==='/privacy') return output(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>访问统计说明</title><link rel="stylesheet" href="/admin/style.css"><main class="dashboard"><h1>访问统计说明</h1><p>本站使用第一方匿名 Cookie，统计页面浏览、浏览器访客和独立出口 IP。不会跨网站追踪或读取你的身份信息。</p><p>浏览记录和去重标识保留 90 天，日汇总保留 12 个月；原始 IP 加密保留 7 天，用于排查异常访问。UV 是浏览器标识的去重估计，不代表自然人数。统计结果仅向已登录管理员提供。</p><p>疑似自动访问可能需要 Cloudflare Turnstile 验证，可跳过验证继续阅读，相关事件不纳入有效浏览。</p><p>不希望被统计时，可以在浏览器启用 Global Privacy Control；本站会停止该浏览器的访问采集。清除本站 Cookie 会重置访客标识。</p><a href="/">返回阅读</a></main></html>`,200,'text/html; charset=utf-8');
+  if(path==='/privacy') return output(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>访问统计说明</title><link rel="stylesheet" href="/admin/style.css"><main class="dashboard"><h1>访问统计说明</h1><p>本站使用第一方假名化 Cookie，统计页面浏览、浏览器访客和独立出口 IP。不会跨网站追踪或读取你的身份信息。</p><p>浏览记录和去重标识保留 90 天，日汇总保留 12 个月；完整 IP 加密保存并仅在最近 7 天的访问明细中供管理员查看。UV 是浏览器标识的去重估计，不代表自然人数。</p><p>疑似自动访问可能需要 Cloudflare Turnstile 验证，可跳过验证继续阅读，相关事件不纳入有效浏览。</p><p>启用 Global Privacy Control 的浏览器不会被采集。也可以使用下面的站内开关；退出设置保存一年，并可随时恢复。</p>${url.searchParams.get('status')==='disabled'?'<p><strong>当前浏览器已退出访问统计。</strong></p>':url.searchParams.get('status')==='enabled'?'<p><strong>当前浏览器已恢复访问统计。</strong></p>':''}<form method="post" action="/api/analytics/opt-out"><button type="submit">停止统计此浏览器</button></form><form method="post" action="/api/analytics/opt-in"><button type="submit">恢复统计此浏览器</button></form><p><a href="/">返回阅读</a></p></main></html>`,200,'text/html; charset=utf-8');
   if(!path.startsWith('/api/')&&!path.startsWith('/admin'))return env.ASSETS?env.ASSETS.fetch(request):error('未找到页面',404);
   if(!allowedHost(request,env))return error('未找到页面',404);
   if(request.method==='OPTIONS')return error('不支持跨域访问',403);
@@ -81,6 +81,8 @@ async function handler(request,env) {
   const ipKey=await fingerprint('ip',ip,env.SIGNING_KEY);
   const requestLimit=await gate(env,{action:'request',ip:ipKey});
   if(!requestLimit.allowed)return rateResponse(store,requestLimit,env);
+  if(path==='/api/analytics/opt-out'&&request.method==='POST')return output('',303,'text/plain; charset=utf-8',{'Location':'/privacy?status=disabled','Set-Cookie':cookie(OPTOUT_COOKIE,'1',365*86400,'Lax')});
+  if(path==='/api/analytics/opt-in'&&request.method==='POST')return output('',303,'text/plain; charset=utf-8',{'Location':'/privacy?status=enabled','Set-Cookie':cookie(OPTOUT_COOKIE,'',0,'Lax')});
   if(path==='/api/admin/config'&&request.method==='GET')return output({siteKey:env.TURNSTILE_SITE_KEY||'',environment:env.ENVIRONMENT});
   if(path==='/admin/login'&&request.method==='GET')return output(renderLogin({siteKey:env.TURNSTILE_SITE_KEY,environment:env.ENVIRONMENT}),200,'text/html; charset=utf-8');
   if(path==='/api/admin/login'&&request.method==='POST') {
@@ -119,7 +121,7 @@ async function handler(request,env) {
     return error('未找到页面',404);
   }
   if(!['/api/analytics/session','/api/analytics/event'].includes(path)||request.method!=='POST')return error('未找到页面',404);
-  if(request.headers.get('Sec-GPC')==='1'||await adminSession(request,env,store))return new Response(null,{status:204,headers:{'Cache-Control':'no-store','Set-Cookie':cookie(VISITOR_COOKIE,'',0,'Lax')}});
+  if(request.headers.get('Sec-GPC')==='1'||cookies(request)[OPTOUT_COOKIE]==='1'||await adminSession(request,env,store))return new Response(null,{status:204,headers:{'Cache-Control':'no-store','Set-Cookie':cookie(VISITOR_COOKIE,'',0,'Lax')}});
   const body=await boundedJSON(request),ua=request.headers.get('User-Agent')||'';
   const bot=/bot|crawler|spider|headless|curl|wget|python/i.test(ua);
   const existing=await readToken(cookies(request)[VISITOR_COOKIE],env.SIGNING_KEY,'visitor');

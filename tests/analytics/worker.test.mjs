@@ -61,7 +61,15 @@ test('same browser switching IP remains one UV; administrators are excluded from
  for(const ip of ['203.0.113.1','203.0.113.2']) assert.equal((await request('/api/analytics/event',{method:'POST',cookie:v.cookie,body:{eventId:crypto.randomUUID(),page:'/'},ip,headers:{'X-Analytics-CSRF':v.csrf}})).status,202);
  const report=await(await request('/api/admin/report',{cookie:adminCookie})).json();
  assert.equal(report.summary.pv,4);assert.equal(report.summary.uv,3);assert.equal(report.summary.ips,3);
- assert.equal((await request('/api/analytics/session',{method:'POST',body:{},cookie:adminCookie})).status,204);
+  assert.equal((await request('/api/analytics/session',{method:'POST',body:{},cookie:adminCookie})).status,204);
+});
+test('site opt-out cookie stops collection and can be cleared again',async()=>{
+  const out=await request('/api/analytics/opt-out',{method:'POST',body:{}});
+  assert.equal(out.status,303);assert.equal(out.headers.get('location'),'/privacy?status=disabled');
+  const optout=cookieOf(out);assert.match(optout,/__Host-dwg_analytics_optout=1/);
+  assert.equal((await request('/api/analytics/session',{method:'POST',body:{},cookie:optout})).status,204);
+  const restore=await request('/api/analytics/opt-in',{method:'POST',body:{},cookie:optout});
+  assert.equal(restore.status,303);assert.match(restore.headers.get('set-cookie'),/Max-Age=0/);
 });
 test('rotating IPs cannot bypass visitor velocity or the globally coordinated request budget',async()=>{
  const gate=await mf.getDurableObjectNamespace('TRAFFIC_GATE');const stub=gate.get(gate.idFromName('test-budget'));

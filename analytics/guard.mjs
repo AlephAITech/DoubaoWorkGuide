@@ -6,9 +6,10 @@ export class TrafficGate {
     const data=await request.json(),now=Date.now();
     const result=await this.state.storage.transaction(async(tx)=>{
       const setting=(key,fallback)=>{const n=Number(this.env[key]);return Number.isSafeInteger(n)&&n>0&&n<=10000000?n:fallback;};
-      const peek=async(key,window)=>(await tx.get(`c:${key}:${Math.floor(now/window)}`))?.count||0;
-      const tick=async(key,window,cap)=>{
-        const name=`c:${key}:${Math.floor(now/window)}`;
+      const bucket=(window,offset=0)=>Math.floor((now+offset)/window);
+      const peek=async(key,window,offset=0)=>(await tx.get(`c:${key}:${bucket(window,offset)}`))?.count||0;
+      const tick=async(key,window,cap,offset=0)=>{
+        const name=`c:${key}:${bucket(window,offset)}`;
         const value=(await tx.get(name))?.count||0;
         if(value>=cap)return cap+1;
         await tx.put(name,{count:value+1,expires:now+window*2});return value+1;
@@ -31,13 +32,13 @@ export class TrafficGate {
         return {allowed:true};
       }
       const minuteLimit=setting('MAX_EVENTS_PER_MINUTE',300),dayLimit=setting('MAX_EVENTS_PER_DAY',5000);
-      const global=await peek('events',60000),daily=await peek('events-day',86400000);
+      const global=await peek('events',60000),daily=await peek('events-day',86400000,8*3600000);
       if(global>=minuteLimit||daily>=dayLimit)return reject('event_budget');
       if(global>=Math.ceil(minuteLimit/2)&&!data.proof)return reject('global_challenge',true);
       const visitor=await tick(`visitor:${data.visitor}`,60000,90),ip=await tick(`ip:${data.ip}`,60000,301);
       if(visitor>90) return reject('visitor_rate');
       if(!data.proof&&(visitor>30||ip>300||data.bot)) return reject('event_challenge',true);
-      await tick('events',60000,minuteLimit);await tick('events-day',86400000,dayLimit);
+      await tick('events',60000,minuteLimit);await tick('events-day',86400000,dayLimit,8*3600000);
       return {allowed:true,quality:visitor>30||data.bot?'suspicious':'valid'};
     });
     if(!await this.state.storage.getAlarm()) await this.state.storage.setAlarm(now+60000);

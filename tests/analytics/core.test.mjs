@@ -88,6 +88,19 @@ test('cleanup removes expired detail and encrypted IP while retaining historical
   assert.equal(db.sql.prepare('SELECT encrypted FROM ip_details').get().encrypted,null);
   db.sql.close();
 });
+test('a recent repeat visit cannot make IP details from an older event revealable', async () => {
+  const db=database(),store=new AnalyticsStore(db);
+  const event=(id,time)=>({id,time,day:time.slice(0,10),page:'/',visitor:'v',ip:'same-ip-key',quality:'valid',referrer:'direct',country:'CN',device:'desktop'});
+  await store.record(event('old','2026-06-01T00:00:00.000Z'));
+  await store.record(event('recent','2026-09-12T00:00:00.000Z'));
+  await store.saveIP({key:'same-ip-key',masked:'192.0.2.*',encrypted:'encrypted',time:'2026-09-12T00:00:00.000Z'});
+  const now=new Date('2026-09-12T01:00:00.000Z');
+  assert.equal((await store.report({from:'2026-06-01',to:'2026-06-01'},now)).ips.length,0);
+  const wide=await store.report({from:'2026-06-01',to:'2026-09-12'},now);
+  assert.equal(wide.summary.pv,2);
+  assert.equal(wide.ips[0].pv,1);
+  db.sql.close();
+});
 test('admin sessions can be revoked and expire even if the cookie is retained', async () => {
   const db=database(),store=new AnalyticsStore(db);
   await store.createSession('digest','csrf',2000);

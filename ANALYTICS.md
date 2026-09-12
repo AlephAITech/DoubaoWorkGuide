@@ -64,8 +64,8 @@ npx wrangler secret put TURNSTILE_SECRET_KEY --config wrangler.analytics.preview
 - PV = 服务端接受的有效格式页面事件（含标记可疑）；一个浏览器同一 event ID 重试只计一次。计数通过 D1 唯一键和 SQL 触发器原子更新，禁止先读后写计数。
 - 有效 PV、UV、独立 IP 排除标记可疑事件。匿名访客 Cookie 由服务端签名，IP 仅采用 Cloudflare `CF-Connecting-IP`；IPv6 规范化，HMAC 去重，原始 IP AES-GCM 加密。若账户启用 Pseudo IPv4 Overwrite Headers，需显式配置 `PSEUDO_IPV4=overwrite`。
 - UV 是浏览器估计，IP 是网络出口；Cookie 清理/设备切换/IP 池仍会影响数值，不能当自然人数或保证无机器人。
-- 北京时间日界线。近 90 天可任意选择区间，UV/IP 对整个区间去重，不累加日值。首页/文章切换从前端成功渲染采集，图片、JSON、脚本请求不算 PV。Global Privacy Control 用户不采集。
-- 事件明细/去重标识 90 天，日汇总 12 个月，累计 PV 单独保存；原始 IP 最长 7 天且默认脱敏。每天北京时间 03:25 清理，API 即使尚未清理也拒绝查看超过 7 天的原始 IP。
+- 北京时间日界线（包括每日采集预算）。近 90 天可任意选择区间，UV/IP 对整个区间去重，不累加日值。首页/文章切换从前端成功渲染采集，图片、JSON、脚本请求不算 PV。Global Privacy Control 用户和在 `/privacy` 主动退出的浏览器不采集。
+- 事件明细/去重标识 90 天，日汇总 12 个月，累计 PV 单独保存；IP 访问明细严格限制为最近 7×24 小时且默认脱敏，更早事件不会因同一 IP 再次访问而重新关联完整 IP。每天北京时间 03:25 清理，API 即使尚未清理也拒绝查看超过 7 天的完整 IP。
 - 管理员随机 256-bit 密码；PBKDF2-SHA256 100,000 次（Workers Web Crypto 上限）。会话服务端保存、8 小时过期、退出撤销，Cookie 为 Secure/HttpOnly/SameSite。没有注册、弱密码设置或公开统计 API。
 - Turnstile 在服务端验证 hostname/action；令牌不可重放。管理员和采集使用不同 action。生产/预览缺失密钥、DB 或限流绑定时拒绝访问，不降级成免登录。
 - 所有上报经过全局 Durable Object。默认全站每分钟请求上限 1200；放行事件上限每分钟 300、每天 5000；单访客每分钟超过 30 次触发挑战，超过 90 次拒绝；全站事件达到分钟预算一半时新未验证流量触发挑战。阈值是首版保护值，正式上线按实际访问基线调整，预算包含允许到数据库的重试。
