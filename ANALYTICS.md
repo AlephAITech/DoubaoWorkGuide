@@ -1,6 +1,6 @@
 # 豆包私有访问统计
 
-当前工作在 `codex/private-analytics`。**用户确认前不得合并 main、修改 doubaowork.homes 路由或替换正式部署。**
+访问统计由独立 Cloudflare Worker 处理，数据保存在绑定的 Cloudflare D1 中，不写入 GitHub 仓库或 Pages 静态文件。GitHub `main` 更新会让现有 Pages 项目自动发布网页代码，但不会删除、重建或覆盖 D1；统计 Worker 也不会仅因 Pages 更新而自动重新部署。
 
 ## 先在本地验收
 
@@ -72,9 +72,21 @@ npx wrangler secret put TURNSTILE_SECRET_KEY --config wrangler.analytics.preview
 - 挑战/拒绝请求不消耗日事件预算；计数器饱和后停止重复写入，异常日志每原因每分钟采样一次。到达 Worker/DO 的拒绝请求仍可能产生请求和读取费用，边缘 WAF 是另一层必要保护。
 - 网站请求总量、WAF 已拦截请求和安全事件目前**未接入**本数据库。后台提供 Cloudflare 面板入口，不用零值伪装已接入。静态正文为公开 JSON，限流不代表防复制。
 
-## 合并批准之后的正式部署
+## 正式部署
 
-正式部署由账户所有者配置独立 Worker、D1、管理员密钥和正式域名 Turnstile widget，不能复用预览数据或测试开关。先核对域名代理和现有 Pages/Worker 路由，然后仅为 `/api/analytics/*`、`/api/admin/*`、`/admin*`、`/privacy*` 添加对应 Worker 路由；普通页面和资源继续走原有 Pages。正式域名默认入口必须禁用或同等鉴权，预览域名使用隔离环境。
+正式环境使用独立的 `doubao-analytics` Worker、`doubao-analytics` D1、管理员密钥和正式域名 Turnstile widget，不复用预览数据或测试开关。版本化配置 `wrangler.analytics.production.jsonc` 只为 `/api/analytics/*`、`/api/admin/*`、`/admin*`、`/privacy*` 添加 Worker 路由；普通页面和资源继续走原有 Pages。Worker 的 `workers.dev` 和预览 URL 均关闭。
+
+首次部署或主动轮换凭据时执行：
+
+```sh
+node tools/analytics/credentials.mjs --production
+npx wrangler d1 migrations apply DB --remote --config wrangler.analytics.production.jsonc
+npx wrangler deploy --config wrangler.analytics.production.jsonc
+npx wrangler secret bulk .secrets/production-secrets.json --config wrangler.analytics.production.jsonc
+npx wrangler secret put TURNSTILE_SECRET_KEY --config wrangler.analytics.production.jsonc
+```
+
+后续只更新 Worker 代码时不需要重建 D1 或重新生成管理员凭据；直接迁移数据库并部署即可。迁移是增量执行，部署 Worker 或 Pages 都不会清空 D1。`.secrets/production-login.txt` 是正式后台唯一的明文初始密码保存位置，不得提交到 Git。
 
 在账户可用套餐内为登录/采集接口配置边缘请求限流，对公开内容的高频读取另外设置规则；单 IP 不能代替跨会话行为监测。Bot Management 高级评分、完整边缘日志和高级计数维度依套餐而定，不在免费版中假定存在。先观察误伤和实际额度再调整，不直接全站启用高强度挑战。
 

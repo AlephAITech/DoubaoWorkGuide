@@ -1,0 +1,34 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "doubao-analytics",
+  "main": "analytics/worker.mjs",
+  "compatibility_date": "2026-09-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "account_id": "5915a9be9a8236ba95bb3b7ce227187b",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    {"pattern": "doubaowork.homes/api/analytics/*", "zone_name": "doubaowork.homes"},
+    {"pattern": "doubaowork.homes/api/admin/*", "zone_name": "doubaowork.homes"},
+    {"pattern": "doubaowork.homes/admin*", "zone_name": "doubaowork.homes"},
+    {"pattern": "doubaowork.homes/privacy*", "zone_name": "doubaowork.homes"}
+  ],
+  "vars": {
+    "ENVIRONMENT": "production",
+    "ALLOWED_HOSTS": "doubaowork.homes",
+    "MAX_REQUESTS_PER_MINUTE": "1200",
+    "MAX_EVENTS_PER_MINUTE": "300",
+    "MAX_EVENTS_PER_DAY": "5000",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAExUfCo2hE_wkp4y"
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "doubao-analytics",
+    "database_id": "805997f3-363d-43dc-ac48-83036af9c3c2",
+    "migrations_dir": "migrations"
+  }],
+  "durable_objects": {"bindings": [{"name": "TRAFFIC_GATE", "class_name": "TrafficGate"}]},
+  "migrations": [{"tag": "v1", "new_sqlite_classes": ["TrafficGate"]}],
+  "triggers": {"crons": ["25 19 * * *"]},
+  "observability": {"enabled": false}
+}

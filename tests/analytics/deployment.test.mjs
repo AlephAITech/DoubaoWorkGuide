@@ -16,6 +16,22 @@ test('preview configuration cannot target production routes or carry local verif
   for(const replacement of [{host:'doubaowork.homes'},{databaseId:'00000000-0000-0000-0000-000000000001'},{siteKey:'1x00000000000000000000AA'},{siteKey:'2x00000000000000000000AB'},{siteKey:'3x00000000000000000000FF'}]) assert.throws(()=>configure(base,{...values,...replacement}));
 });
 
+test('production configuration only claims analytics paths and cannot serve a workers.dev preview', async()=>{
+  const config=JSON.parse(await readFile('wrangler.analytics.production.jsonc','utf8'));
+  assert.equal(config.name,'doubao-analytics');
+  assert.equal(config.vars.ENVIRONMENT,'production');
+  assert.equal(config.vars.LOCAL_TEST,undefined);
+  assert.equal(config.vars.ALLOWED_HOSTS,'doubaowork.homes');
+  assert.equal(config.workers_dev,false);assert.equal(config.preview_urls,false);
+  assert.equal(config.assets,undefined,'ordinary pages and assets must continue through Pages');
+  assert.deepEqual(config.routes.map(route=>route.pattern),[
+    'doubaowork.homes/api/analytics/*',
+    'doubaowork.homes/api/admin/*',
+    'doubaowork.homes/admin*',
+    'doubaowork.homes/privacy*',
+  ]);
+});
+
 test('public hosts fail closed and real-mode login verifies Turnstile hostname/action/result',async()=>{
   const bundle=await build({entryPoints:['analytics/worker.mjs'],bundle:true,write:false,format:'esm',platform:'neutral',external:['node:*','cloudflare:*']});
   const password='integration-only-high-entropy-secret-12345';
