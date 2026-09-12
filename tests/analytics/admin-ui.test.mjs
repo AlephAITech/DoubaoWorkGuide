@@ -19,6 +19,9 @@ test('public shells use external CSP-compatible resources and accessible form fi
   }
   assert.match(renderLogin({}), /autocomplete="current-password"/);
   assert.match(renderLogin({}), /autocomplete="username"/);
+  assert.match(renderLogin({}), /id="turnstile-widget"/);
+  assert.doesNotMatch(renderLogin({}), /id="turnstile"/);
+  assert.match(ADMIN_JS, /api\.js\?render=explicit&onload=/);
 });
 test('browser bundle parses without executing network operations on unrelated shells', () => {
   const script = new vm.Script(ADMIN_JS);

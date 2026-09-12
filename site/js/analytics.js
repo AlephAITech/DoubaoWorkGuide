@@ -103,14 +103,25 @@ export function trackPage(page) {
 
 let turnstileLoading;
 function loadTurnstile() {
-  if (globalThis.turnstile) return Promise.resolve(globalThis.turnstile);
+  if (typeof globalThis.turnstile?.render === 'function') return Promise.resolve(globalThis.turnstile);
   if (!turnstileLoading) {
     turnstileLoading = new Promise((resolve, reject) => {
+      const callback = '__dwgAnalyticsTurnstileReady';
+      let settled = false, timer;
+      const finish = (error, api) => {
+        if (settled) return;
+        settled = true; clearTimeout(timer); delete globalThis[callback];
+        error ? reject(error) : resolve(api);
+      };
+      globalThis[callback] = () => {
+        const api = globalThis.turnstile;
+        finish(typeof api?.render === 'function' ? null : new Error('Unavailable'), api);
+      };
       const script = document.createElement('script');
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.src = `https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=${callback}`;
       script.async = true;
-      script.onload = () => globalThis.turnstile ? resolve(globalThis.turnstile) : reject(new Error('Unavailable'));
-      script.onerror = reject;
+      script.onerror = () => finish(new Error('Unavailable'));
+      timer = setTimeout(() => finish(new Error('Unavailable')), 10000);
       document.head.append(script);
     }).catch(error => { turnstileLoading = undefined; throw error; });
   }

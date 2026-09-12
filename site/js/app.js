@@ -5,7 +5,7 @@
    导航靠页眉右上的胶囊、目录页，以及每篇文末的下一节链接。
    ============================================================ */
 
-import { renderMarkdown, escapeHtml, plainText } from "./markdown.js?v=20260912-analytics-1";
+import { renderMarkdown, escapeHtml, plainText } from "./markdown.js?v=20260912-analytics-2";
 
 const READ_KEY = "dwg.read";
 const RESUME_KEY = "dwg.resume";
@@ -13,7 +13,7 @@ const RAIL_KEY = "dwg.rail"; /* 左侧章节目录："1" 固定展开，其余�
 const THEME_KEY = "dwg.theme";
 const THEME_ORDER = ["system", "light", "dark"];
 const ASSET_VERSION =
-  document.querySelector('meta[name="dwg-assets-version"]')?.content || "20260912-analytics-1";
+  document.querySelector('meta[name="dwg-assets-version"]')?.content || "20260912-analytics-2";
 const versionedAsset = (path) => `${path}?v=${encodeURIComponent(ASSET_VERSION)}`;
 
 // Load analytics independently: its download or API failure never blocks reading.
