@@ -64,6 +64,8 @@ try {
   assert.equal(homeVisibility.scrollWidth, homeVisibility.viewport, "桌面首页不得横向溢出");
 
   const article = await browser.newPage();
+  // Static UI regression opts out of collection; analytics has its own runtime tests.
+  await article.evaluateOnNewDocument(() => Object.defineProperty(navigator, 'globalPrivacyControl', { value: true }));
   await article.setViewport({ width: 1440, height: 900 });
   const errors = [];
   const articleRequests = [];

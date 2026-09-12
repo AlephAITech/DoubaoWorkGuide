@@ -142,6 +142,8 @@ npm run audit
 
 站点发布目录为 `site`，无需额外构建步骤。主分支保存线上版本，当前网站由 Cloudflare 托管并使用独立域名访问。
 
+私有访问统计包含独立的 Worker、D1 和管理员登录，需要单独配置。开发、预览部署和数据口径见 [ANALYTICS.md](ANALYTICS.md)；当前功能在 `codex/private-analytics` 分支，待确认后才能合并并接入正式网站。
+
 - 在线网站 [doubaowork.homes](https://doubaowork.homes/)
 - GitHub 仓库 [AlephAITech/DoubaoWorkGuide](https://github.com/AlephAITech/DoubaoWorkGuide)
 
