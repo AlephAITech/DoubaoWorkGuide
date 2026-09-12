@@ -46,3 +46,10 @@ pnpm-debug.log*
 # Keep only media referenced by the current public snapshot. Referenced files
 # are force-added to Git; stale downloads and original video masters stay local.
 /site/media/*
+
+# Private analytics runtime, credentials and generated deployment config
+/.wrangler/
+/.secrets/
+.dev.vars
+.dev.vars.*
+/wrangler.analytics.preview.json

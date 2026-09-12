@@ -43,6 +43,8 @@ const browser = await puppeteer.launch({
 
 try {
   const page = await browser.newPage();
+  // Static UI regression opts out of collection; analytics has its own runtime tests.
+  await page.evaluateOnNewDocument(() => Object.defineProperty(navigator, 'globalPrivacyControl', { value: true }));
   await page.setCacheEnabled(false);
   await page.setViewport({ width: 390, height: 844, isMobile: true });
   const errors = [];

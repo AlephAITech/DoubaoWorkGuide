@@ -5,7 +5,7 @@
    导航靠页眉右上的胶囊、目录页，以及每篇文末的下一节链接。
    ============================================================ */
 
-import { renderMarkdown, escapeHtml, plainText } from "./markdown.js?v=20260906-1";
+import { renderMarkdown, escapeHtml, plainText } from "./markdown.js?v=20260912-analytics-1";
 
 const READ_KEY = "dwg.read";
 const RESUME_KEY = "dwg.resume";
@@ -13,8 +13,16 @@ const RAIL_KEY = "dwg.rail"; /* 左侧章节目录："1" 固定展开，其余�
 const THEME_KEY = "dwg.theme";
 const THEME_ORDER = ["system", "light", "dark"];
 const ASSET_VERSION =
-  document.querySelector('meta[name="dwg-assets-version"]')?.content || "20260906-1";
+  document.querySelector('meta[name="dwg-assets-version"]')?.content || "20260912-analytics-1";
 const versionedAsset = (path) => `${path}?v=${encodeURIComponent(ASSET_VERSION)}`;
+
+// Load analytics independently: its download or API failure never blocks reading.
+let analyticsModule;
+function trackRenderedPage(page) {
+  (analyticsModule ||= import(`./analytics.js?v=${encodeURIComponent(ASSET_VERSION)}`))
+    .then(({ trackPage }) => trackPage(page))
+    .catch(() => { analyticsModule = null; });
+}
 
 const dom = {
   app: document.getElementById("app"),
@@ -524,7 +532,7 @@ function viewLanding() {
             <a class="lp__foot-git" href="${FOOT_LINKS.repo}" target="_blank" rel="noopener noreferrer" aria-label="GitHub 仓库">${GITHUB_ICON}</a>
             <a href="${FOOT_LINKS.community}" target="_blank" rel="noopener noreferrer">加入 AgentWork 社区</a>
           </nav>
-          <p class="lp__foot-copy">© 豆包工作蓝皮书</p>
+          <p class="lp__foot-copy">© 豆包工作蓝皮书 · <a href="/privacy">统计说明</a> · <a href="/admin/analytics">管理</a></p>
           <nav class="lp__foot-friends" aria-label="友情链接">
             <span class="lp__foot-friends-label">友情链接</span>
             ${friendLinksHtml()}
@@ -1079,7 +1087,7 @@ function footer(tight = false) {
           <a class="foot__git" href="${FOOT_LINKS.repo}" target="_blank" rel="noopener noreferrer" aria-label="GitHub 仓库">${GITHUB_ICON}</a>
           <a href="${FOOT_LINKS.community}" target="_blank" rel="noopener noreferrer">加入 AgentWork 社区</a>
         </nav>
-        <p class="foot__copy">© 豆包工作蓝皮书</p>
+        <p class="foot__copy">© 豆包工作蓝皮书 · <a href="/privacy">统计说明</a> · <a href="/admin/analytics">管理</a></p>
       </div>
       <nav class="foot__friends" aria-label="友情链接">
         <span class="foot__friends-label">友情链接</span>
@@ -1199,6 +1207,7 @@ function render() {
   }
 
   dom.app.innerHTML = html;
+  trackRenderedPage(doc ? `/p/${route.id}` : ({home:"/",intro:"/intro",toc:"/toc"}[route.name] || null));
 
   // 首页有自己的蓝色书封（自带品牌行与入口），隐藏白底页眉
   document.body.classList.toggle("is-home", route.name === "home");
