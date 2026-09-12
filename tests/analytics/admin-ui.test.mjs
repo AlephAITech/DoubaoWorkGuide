@@ -13,8 +13,9 @@ test('untrusted identity and configuration cannot break out of HTML attributes o
 test('public shells use external CSP-compatible resources and accessible form fields', () => {
   for (const html of [renderLogin({}),renderDashboard({})]) {
     assert.match(html, /lang="zh-CN"/);
-    assert.match(html, /href="\/admin\/style.css"/);
-    assert.match(html, /src="\/admin\/app.js"/);
+    assert.match(html, /href="\/admin\/style.css\?v=/);
+    assert.match(html, /src="\/admin\/app.js\?v=/);
+    assert.match(html, /\/admin\/app\.js\?v=20260912-turnstile-2/);
     assert.doesNotMatch(html, / style=|<style|<script(?![^>]*src=)/);
   }
   assert.match(renderLogin({}), /autocomplete="current-password"/);
