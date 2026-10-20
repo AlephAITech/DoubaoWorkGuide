@@ -25,7 +25,19 @@ export function safeUrl(raw) {
   if (!value) return "";
   if (/^(https?:)?\/\//i.test(value)) return escapeHtml(value);
   if (value.startsWith("/")) return escapeHtml(BASE + value.slice(1));
-  if (/^[\w./-]/.test(value)) return escapeHtml(value);
+  if (/^[\w./-]/.test(value)) {
+    let decoded;
+    try {
+      decoded = decodeURIComponent(value);
+    } catch {
+      decoded = value;
+    }
+    const scheme = decoded.match(/^([a-z][a-z0-9+.-]*)\s*:/i)?.[1]?.toLowerCase();
+    if (scheme && ["javascript", "data", "vbscript", "file", "blob", "about"].includes(scheme)) {
+      return "";
+    }
+    return escapeHtml(value);
+  }
   return "";
 }
 
